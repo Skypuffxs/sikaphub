@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # 1. Disable directory listing globally
+    Options -Indexes
+
+    # 2. Block direct access to hidden files (like .env or .git)
+    RewriteRule "(^|/)\." - [F,L]
+
+    # 3. Block direct browser access to core application folders
+    RewriteRule ^(app|config|routes|views)/ - [F,L]
+
+    # 4. Route all valid web traffic directly into the public/ folder
+    RewriteRule ^$ public/index.php [L]
+    RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
+</IfModule>

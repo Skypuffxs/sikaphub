@@ -1,0 +1,22 @@
+# storage/ holds business permits, resumes and profile photos. Nothing in
+# here is ever served directly over HTTP — every file is delivered through
+# the authorization gateway at GET /admin/view-document (AdminController::
+# viewDocument), which reads it with PHP.
+#
+# The root .htaccess rewrites non-public paths into public/, which already
+# keeps this directory unreachable — but production may not run that rewrite.
+# This deny rule holds regardless of mod_rewrite. It does not affect PHP
+# filesystem reads (readfile / move_uploaded_file).
+
+# Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Apache 2.2
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+
+Options -Indexes

@@ -1,0 +1,5 @@
+.env
+vendor/
+storage/documents/*
+storage/uploads/*
+storage/demo_manifest.json

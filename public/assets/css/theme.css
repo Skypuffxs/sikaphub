@@ -1,0 +1,110 @@
+/* =========================================================
+   S.I.K.A.P. Hub — Unified Balanced Design System
+   ========================================================= */
+
+:root {
+    /* 1. Primary Brand & Subtle Secondary Accent (Matches Landing Page) */
+    --primary:           #1769ff;   /* SIKAPHUB Vibrant Blue */
+    --primary-hover:     #0053e6;   /* Rich Blue hover state */
+    --primary-light:     #e4efff;   /* Soft blue tint */
+    --secondary:         #173b72;   /* Deep Navy Accent */
+    --secondary-hover:   #102d59;
+    --secondary-light:   #e9f2ff;   /* Soft blue neutral tint */
+
+    /* 2. Balanced Neutrals */
+    --background:        #f7fbff;   /* Soft landing page tint background */
+    --surface:           #ffffff;   /* Clean white surface */
+    --surface-alt:       #eef5ff;   /* Light card/input surface */
+    --border:            #e2ebf6;   /* SIKAPHUB border tint */
+    --border-hover:      #c5d8f0;
+
+    /* 3. Text Colors (Deep rich navy blue palette) */
+    --text-primary:      #102d59;   /* SIKAPHUB primary dark navy text */
+    --text-secondary:    #4d6380;   /* SIKAPHUB secondary text */
+    --text-muted:        #617895;   /* SIKAPHUB muted text */
+    --text-on-primary:   #ffffff;   /* Light text on primary buttons */
+
+    /* 4. Standard State Colors */
+    --success:           #1c9c67;
+    --success-light:     #e7f8ef;
+    --error:             #dc2626;
+    --error-light:       #fee2e2;
+    --warning:           #d97706;
+    --warning-light:     #fef3c7;
+
+    /* Layout & Surface Variables */
+    --radius-sm:         6px;
+    --radius-md:         10px;
+    --radius-lg:         16px;
+    --shadow-sm:         0 2px 6px rgba(16, 45, 89, 0.05);
+    --shadow-md:         0 6px 18px rgba(16, 45, 89, 0.08);
+    --shadow-lg:         0 12px 35px rgba(16, 45, 89, 0.12);
+}
+
+/* Global Reset & Surface Enforcement */
+body {
+    background-color: var(--background) !important;
+    color: var(--text-primary) !important;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Utility Theme Classes */
+.bg-app-bg {
+    background-color: var(--background) !important;
+}
+
+.bg-surface {
+    background-color: var(--surface) !important;
+}
+
+.bg-surface-alt {
+    background-color: var(--surface-alt) !important;
+}
+
+.border-theme {
+    border-color: var(--border) !important;
+}
+
+.text-theme-primary {
+    color: var(--text-primary) !important;
+}
+
+.text-theme-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-theme-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Card & Button Components */
+.theme-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+    background-color: var(--primary) !important;
+    color: var(--text-on-primary) !important;
+    border: 1px solid var(--primary) !important;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-light) !important;
+    color: var(--secondary) !important;
+    border: 1px solid var(--secondary) !important;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary) !important;
+    color: #ffffff !important;
+}
