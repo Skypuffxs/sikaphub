@@ -15,6 +15,17 @@ header_remove('X-Powered-By');
 
 define('IS_ADMIN_ENTRY', true);
 
+// Enforce subdomain execution: return 404 if accessed via main domain (sikaphub.com/admin/login)
+$httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
+$requestUri = $_SERVER['REQUEST_URI'] ?? '';
+$isViewDocument = (strpos($requestUri, 'view-document') !== false);
+
+if (strpos($httpHost, 'admin.') !== 0 && !$isViewDocument) {
+    http_response_code(404);
+    echo "404 - Page Not Found";
+    exit();
+}
+
 // 1. Initialize Security & Session
 ini_set('session.use_strict_mode', '1');
 session_set_cookie_params([

@@ -4,9 +4,6 @@
     # 1. Disable directory listing globally
     Options -Indexes
 
-    # 1b. Disable /admin/login on main domain (sikaphub.com)
-    RewriteCond %{HTTP_HOST} !^admin\. [NC]
-    RewriteRule ^admin/login - [F,L]
 
     # 2. Block direct access to hidden files (like .env or .git)
     RewriteRule "(^|/)\." - [F,L]
