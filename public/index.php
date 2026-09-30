@@ -182,11 +182,15 @@ if ($isAdminSubdomain) {
     $router->post('/employer/upload-permit', ['EmployerController', 'uploadPermit']);
     $router->post('/employer/compare-candidates', ['EmployerController', 'compareCandidates']);
 
-    // Admin Routes on Main Domain
-    $router->get('/admin',                   ['AdminController', 'loginForm']);
-    $router->get('/admin/',                  ['AdminController', 'loginForm']);
-    $router->get('/admin/login',             ['AdminController', 'loginForm']);
-    $router->post('/admin/login',            ['AdminController', 'login']);
+    // Redirect main domain /admin requests to the official admin subdomain (https://admin.sikaphub.com/)
+    $redirectAdminSubdomain = function() {
+        header('Location: https://admin.sikaphub.com/');
+        exit();
+    };
+    $router->get('/admin',                   $redirectAdminSubdomain);
+    $router->get('/admin/',                  $redirectAdminSubdomain);
+    $router->get('/admin/login',             $redirectAdminSubdomain);
+    $router->post('/admin/login',            $redirectAdminSubdomain);
     $router->get('/admin/dashboard',         ['AdminController', 'dashboard']);
     $router->get('/admin/verifications',     ['AdminController', 'verifications']);
     $router->get('/admin/export',            ['AdminController', 'exportPdf']);
