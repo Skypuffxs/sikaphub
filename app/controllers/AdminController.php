@@ -59,47 +59,7 @@ class AdminController extends Controller
             $stmt->execute([':username' => $username, ':username2' => $username]);
             $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Auto-provision initial admin account on first login if no admin account matches
-            if (!$admin || empty($admin['password_hash'])) {
-                // Check if an admin record exists in users table
-                $stmtCheck = $db->prepare("SELECT user_id, email, account_status FROM users WHERE role = 'admin' LIMIT 1");
-                $stmtCheck->execute();
-                $existingUserAdmin = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-
-                $hash = password_hash($password, PASSWORD_BCRYPT);
-
-                if (!$existingUserAdmin) {
-                    $adminEmail = (strpos($username, '@') !== false) ? $username : 'admin@guimba.gov.ph';
-                    $stmtInsUser = $db->prepare("INSERT INTO users (email, email_verified_at, role, account_status) VALUES (:email, NOW(), 'admin', 'Active')");
-                    $stmtInsUser->execute([':email' => $adminEmail]);
-                    $userId = (int) $db->lastInsertId();
-
-                    $stmtInsAdmin = $db->prepare("INSERT INTO peso_admins (user_id, username, password_hash, admin_name) VALUES (:user_id, :username, :hash, 'PESO Admin')");
-                    $stmtInsAdmin->execute([
-                        ':user_id' => $userId,
-                        ':username' => $username,
-                        ':hash' => $hash
-                    ]);
-                } else {
-                    $userId = (int) $existingUserAdmin['user_id'];
-                    $stmtPaCheck = $db->prepare("SELECT admin_id FROM peso_admins WHERE user_id = :user_id LIMIT 1");
-                    $stmtPaCheck->execute([':user_id' => $userId]);
-                    $paRow = $stmtPaCheck->fetch(PDO::FETCH_ASSOC);
-
-                    if ($paRow) {
-                        $stmtUpdPa = $db->prepare("UPDATE peso_admins SET username = :username, password_hash = :hash WHERE user_id = :user_id");
-                        $stmtUpdPa->execute([':username' => $username, ':hash' => $hash, ':user_id' => $userId]);
-                    } else {
-                        $stmtInsPa = $db->prepare("INSERT INTO peso_admins (user_id, username, password_hash, admin_name) VALUES (:user_id, :username, :hash, 'PESO Admin')");
-                        $stmtInsPa->execute([':user_id' => $userId, ':username' => $username, ':hash' => $hash]);
-                    }
-                }
-
-                // Re-fetch created/updated admin
-                $stmt->execute([':username' => $username, ':username2' => $username]);
-                $admin = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
+            // Strict authentication check — credentials MUST match existing database hash
             if (!$admin || empty($admin['password_hash']) || !password_verify($password, $admin['password_hash'])) {
                 Audit::write(null, 'admin_login_failed', 'Failed admin login attempt for username: ' . $username);
                 $_SESSION['admin_auth_error'] = 'Invalid username or password.';
