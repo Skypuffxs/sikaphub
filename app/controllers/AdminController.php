@@ -26,39 +26,58 @@ class AdminController extends Controller
             $this->redirect('/admin/login');
         }
 
-        $db = Database::getInstance()->getConnection();
-        $stmt = $db->prepare(
-            "SELECT pa.admin_id, pa.user_id, pa.username, pa.password_hash, u.email, u.role, u.account_status
-             FROM peso_admins pa
-             JOIN users u ON pa.user_id = u.user_id
-             WHERE (pa.username = :username OR u.email = :email) AND u.role = 'admin'
-             LIMIT 1"
-        );
-        $stmt->execute([':username' => $username, ':email' => $username]);
-        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            $db = Database::getInstance()->getConnection();
 
-        if (!$admin || !password_verify($password, $admin['password_hash'])) {
-            Audit::write(null, 'admin_login_failed', 'Failed admin login attempt for username: ' . $username);
-            $_SESSION['admin_auth_error'] = 'Invalid username or password.';
+            // Auto-heal missing peso_admins table on production if migration was not executed
+            $db->exec("CREATE TABLE IF NOT EXISTS peso_admins (
+                admin_id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                username VARCHAR(50) NULL UNIQUE,
+                password_hash VARCHAR(255) NULL,
+                admin_name VARCHAR(100) DEFAULT 'PESO Admin',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            $stmt = $db->prepare(
+                "SELECT pa.admin_id, pa.user_id, pa.username, pa.password_hash, u.email, u.role, u.account_status
+                 FROM users u
+                 LEFT JOIN peso_admins pa ON pa.user_id = u.user_id
+                 WHERE (pa.username = :username OR u.email = :username2) AND u.role = 'admin'
+                 LIMIT 1"
+            );
+            $stmt->execute([':username' => $username, ':username2' => $username]);
+            $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$admin || empty($admin['password_hash']) || !password_verify($password, $admin['password_hash'])) {
+                Audit::write(null, 'admin_login_failed', 'Failed admin login attempt for username: ' . $username);
+                $_SESSION['admin_auth_error'] = 'Invalid username or password.';
+                $this->redirect('/admin/login');
+            }
+
+            if (in_array($admin['account_status'], ['Suspended', 'Deactivated'], true)) {
+                $_SESSION['admin_auth_error'] = 'This account has been ' . strtolower($admin['account_status']) . '.';
+                $this->redirect('/admin/login');
+            }
+
+            session_regenerate_id(true);
+            $_SESSION['user_id']        = (int) $admin['user_id'];
+            $_SESSION['email']          = $admin['email'];
+            $_SESSION['role']           = 'admin';
+            $_SESSION['account_status'] = $admin['account_status'];
+            $_SESSION['ua_hash']        = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? '');
+            $_SESSION['last_activity']  = time();
+
+            Audit::write((int) $admin['user_id'], 'admin_login_success', 'Successful username/password login for ' . $username);
+
+            $this->redirect('/admin/dashboard');
+
+        } catch (\Throwable $e) {
+            error_log('[AdminController::login] Exception: ' . $e->getMessage());
+            $_SESSION['admin_auth_error'] = 'Authentication Database Notice: ' . $e->getMessage();
             $this->redirect('/admin/login');
         }
-
-        if (in_array($admin['account_status'], ['Suspended', 'Deactivated'], true)) {
-            $_SESSION['admin_auth_error'] = 'This account has been ' . strtolower($admin['account_status']) . '.';
-            $this->redirect('/admin/login');
-        }
-
-        session_regenerate_id(true);
-        $_SESSION['user_id']        = (int) $admin['user_id'];
-        $_SESSION['email']          = $admin['email'];
-        $_SESSION['role']           = 'admin';
-        $_SESSION['account_status'] = $admin['account_status'];
-        $_SESSION['ua_hash']        = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? '');
-        $_SESSION['last_activity']  = time();
-
-        Audit::write((int) $admin['user_id'], 'admin_login_success', 'Successful username/password login for ' . $username);
-
-        $this->redirect('/admin/dashboard');
     }
 
     public function dashboard()
@@ -68,18 +87,33 @@ class AdminController extends Controller
             return $this->denyAccess();
         }
 
-        $adminModel = $this->model('Admin');
-        $data = [
-            'kpis' => $adminModel->getKPIs(),
-            'overview' => $adminModel->getSystemOverview(),
-            'geography' => $adminModel->getSeekersByMunicipality(),
-            'top_skills' => $adminModel->getTopDemandSkills(),
-            'pending_employers' => $adminModel->getPendingEmployers(),
-            'pending_skills' => $adminModel->getPendingSkills(),
-            'admin_name' => $adminModel->getAdminName((int) ($_SESSION['user_id'] ?? 0)),
-            'success' => isset($_GET['success']) ? true : false
-        ];
-        $this->view('admin/dashboard', $data);
+        try {
+            $adminModel = $this->model('Admin');
+            $data = [
+                'kpis' => $adminModel->getKPIs(),
+                'overview' => $adminModel->getSystemOverview(),
+                'geography' => $adminModel->getSeekersByMunicipality(),
+                'top_skills' => $adminModel->getTopDemandSkills(),
+                'pending_employers' => $adminModel->getPendingEmployers(),
+                'pending_skills' => $adminModel->getPendingSkills(),
+                'admin_name' => $adminModel->getAdminName((int) ($_SESSION['user_id'] ?? 0)),
+                'success' => isset($_GET['success']) ? true : false
+            ];
+            $this->view('admin/dashboard', $data);
+        } catch (\Throwable $e) {
+            error_log('[AdminController::dashboard] Exception: ' . $e->getMessage());
+            $data = [
+                'kpis' => ['total_seekers' => 0, 'total_employers' => 0, 'verified_employers' => 0, 'pending_employers' => 0, 'active_jobs' => 0, 'pending_skills' => 0],
+                'overview' => [],
+                'geography' => [],
+                'top_skills' => [],
+                'pending_employers' => [],
+                'pending_skills' => [],
+                'admin_name' => 'PESO Admin',
+                'error_msg' => $e->getMessage()
+            ];
+            $this->view('admin/dashboard', $data);
+        }
     }
 
     public function verifications()
@@ -89,131 +123,31 @@ class AdminController extends Controller
             return $this->denyAccess();
         }
 
-        $adminModel = $this->model('Admin');
-        $this->autoVerifyPendingPermits($adminModel);
-        $verifications = $adminModel->getPendingEmployersWithPermits();
-
-        $selectedEmployer = null;
-        if (isset($_GET['employer_id'])) {
-            $empId = (int) $_GET['employer_id'];
-            $selectedEmployer = $adminModel->getEmployerVerificationDetail($empId);
-        }
-
-        $this->view('admin/verifications', [
-            'verifications'    => $verifications,
-            'selectedEmployer' => $selectedEmployer,
-            'admin_name'       => $adminModel->getAdminName((int) ($_SESSION['user_id'] ?? 0)),
-            'success'          => $_GET['success'] ?? null,
-            'error'            => $_GET['error'] ?? null
-        ]);
-    }
-
-    public function reanalyzePermit()
-    {
-        AuthGuard::requireLogin();
-        if (($_SESSION['role'] ?? null) !== 'admin') {
-            return $this->denyAccess();
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return $this->redirect('/admin/employers');
-        }
-
-        $employerId = (int) ($_POST['employer_id'] ?? 0);
-        if ($employerId <= 0) {
-            return $this->redirect('/admin/employers?error=invalid_id');
-        }
-
-        $adminModel = $this->model('Admin');
-        $emp = $adminModel->getEmployerVerificationDetail($employerId);
-        if (!$emp) {
-            return $this->redirect('/admin/employers?error=not_found');
-        }
-
-        $filePath = $this->resolvePermitPathOnDisk($emp);
-        if (!$filePath || !is_file($filePath)) {
-            return $this->redirect('/admin/employers?error=no_permit_file');
-        }
-
         try {
-            $aiService = new AIEngineService();
-            $res = $aiService->verifyBusinessPermit($filePath);
+            $adminModel = $this->model('Admin');
+            $this->autoVerifyPendingPermits($adminModel);
+            $verifications = $adminModel->getPendingEmployersWithPermits();
 
-            $verStatus = $res['verification_status'] ?? 'green_flag';
-            $feedback = $res['ai_feedback'] ?? 'AI Audit completed.';
-            $extracted = isset($res['extracted_permit_data']) ? json_encode($res['extracted_permit_data'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null;
+            $selectedEmployer = null;
+            if (isset($_GET['employer_id'])) {
+                $empId = (int) $_GET['employer_id'];
+                $selectedEmployer = $adminModel->getEmployerVerificationDetail($empId);
+            }
 
-            $db = Database::getInstance()->getConnection();
-            $stmt = $db->prepare("UPDATE employers SET verification_status = :st, ai_feedback = :fb, extracted_permit_data = :ex WHERE employer_id = :id");
-            $stmt->execute([
-                ':st' => $verStatus,
-                ':fb' => $feedback,
-                ':ex' => $extracted,
-                ':id' => $employerId
+            $this->view('admin/verifications', [
+                'verifications' => $verifications,
+                'selectedEmployer' => $selectedEmployer,
+                'success' => $_GET['success'] ?? null,
+                'error' => $_GET['error'] ?? null
             ]);
-
-            return $this->redirect('/admin/employers?success=ai_reanalyzed');
-        } catch (Throwable $e) {
-            error_log('[reanalyzePermit] error for employer #' . $employerId . ': ' . $e->getMessage());
-            return $this->redirect('/admin/employers?error=ai_failed');
+        } catch (\Throwable $e) {
+            error_log('[AdminController::verifications] Exception: ' . $e->getMessage());
+            $this->view('admin/verifications', [
+                'verifications' => [],
+                'selectedEmployer' => null,
+                'error' => 'Database Notice: ' . $e->getMessage()
+            ]);
         }
-    }
-
-    private function autoVerifyPendingPermits($adminModel)
-    {
-        try {
-            $employers = $adminModel->getAllEmployers('', '');
-            $aiService = new AIEngineService();
-            $db = Database::getInstance()->getConnection();
-
-            foreach ($employers as $emp) {
-                $status = $emp['verification_status'] ?? '';
-                if (empty($status) || $status === 'pending') {
-                    $filePath = $this->resolvePermitPathOnDisk($emp);
-                    if ($filePath && is_file($filePath)) {
-                        try {
-                            $res = $aiService->verifyBusinessPermit($filePath);
-                            $verStatus = $res['verification_status'] ?? 'green_flag';
-                            $feedback = $res['ai_feedback'] ?? 'AI Audit completed.';
-                            $extracted = isset($res['extracted_permit_data']) ? json_encode($res['extracted_permit_data'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null;
-
-                            $stmt = $db->prepare("UPDATE employers SET verification_status = :st, ai_feedback = :fb, extracted_permit_data = :ex WHERE employer_id = :id");
-                            $stmt->execute([
-                                ':st' => $verStatus,
-                                ':fb' => $feedback,
-                                ':ex' => $extracted,
-                                ':id' => (int) $emp['employer_id']
-                            ]);
-                        } catch (Throwable $e) {
-                            error_log('[autoVerifyPendingPermits] AI Engine error for employer #' . $emp['employer_id'] . ': ' . $e->getMessage());
-                        }
-                    }
-                }
-            }
-        } catch (Throwable $e) {
-            error_log('[autoVerifyPendingPermits] error: ' . $e->getMessage());
-        }
-    }
-
-    private function resolvePermitPathOnDisk($emp): ?string
-    {
-        $candidates = [];
-        if (!empty($emp['permit_file_path'])) {
-            $clean = ltrim(str_replace('/', '', $emp['permit_file_path']), '/\\');
-            $candidates[] = BASE_PATH . $clean;
-            $candidates[] = $emp['permit_file_path'];
-        }
-        if (!empty($emp['business_permit_file'])) {
-            $fn = basename($emp['business_permit_file']);
-            $candidates[] = BASE_PATH . 'storage/documents/' . $fn;
-            $candidates[] = BASE_PATH . 'public/assets/uploads/permits/' . $fn;
-        }
-        foreach ($candidates as $cand) {
-            if (is_file($cand)) {
-                return $cand;
-            }
-        }
-        return null;
     }
 
     public function employers()
@@ -223,19 +157,26 @@ class AdminController extends Controller
             return $this->denyAccess();
         }
 
-        $adminModel = $this->model('Admin');
-        $this->autoVerifyPendingPermits($adminModel);
+        try {
+            $search = trim($_GET['search'] ?? '');
+            $status = trim($_GET['status'] ?? '');
+            $adminModel = $this->model('Admin');
+            $employers = $adminModel->getAllEmployers($search, $status);
 
-        $search = trim($_GET['q'] ?? '');
-        $status = trim($_GET['status'] ?? '');
-
-        $data = [
-            'admin_name' => $adminModel->getAdminName((int) ($_SESSION['user_id'] ?? 0)),
-            'employers' => $adminModel->getAllEmployers($search, $status),
-            'search' => $search,
-            'status' => $status,
-        ];
-        $this->view('admin/employers', $data);
+            $this->view('admin/employers', [
+                'employers' => $employers,
+                'search' => $search,
+                'status' => $status
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[AdminController::employers] Exception: ' . $e->getMessage());
+            $this->view('admin/employers', [
+                'employers' => [],
+                'search' => '',
+                'status' => '',
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     public function seekers()
@@ -245,20 +186,29 @@ class AdminController extends Controller
             return $this->denyAccess();
         }
 
-        $adminModel = $this->model('Admin');
-        $profileModel = $this->model('Profile');
+        try {
+            $search = trim($_GET['search'] ?? '');
+            $municipalityId = (int) ($_GET['municipality_id'] ?? 0);
 
-        $search = trim($_GET['q'] ?? '');
-        $municipalityId = (int) ($_GET['municipality_id'] ?? 0);
+            $adminModel = $this->model('Admin');
+            $seekers = $adminModel->getAllSeekers($search, $municipalityId);
+            $municipalities = $this->dbQuery("SELECT municipality_id, municipality_name FROM lib_municipalities ORDER BY municipality_name ASC");
 
-        $data = [
-            'admin_name' => $adminModel->getAdminName((int) ($_SESSION['user_id'] ?? 0)),
-            'seekers' => $adminModel->getAllSeekers($search, $municipalityId),
-            'municipalities' => $profileModel->getMunicipalities(),
-            'search' => $search,
-            'municipality_id' => $municipalityId,
-        ];
-        $this->view('admin/seekers', $data);
+            $this->view('admin/seekers', [
+                'seekers' => $seekers,
+                'municipalities' => $municipalities,
+                'search' => $search,
+                'municipality_id' => $municipalityId
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[AdminController::seekers] Exception: ' . $e->getMessage());
+            $this->view('admin/seekers', [
+                'seekers' => [],
+                'municipalities' => [],
+                'search' => '',
+                'municipality_id' => 0
+            ]);
+        }
     }
 
     public function jobs()
@@ -268,38 +218,26 @@ class AdminController extends Controller
             return $this->denyAccess();
         }
 
-        $adminModel = $this->model('Admin');
-        $search = trim($_GET['q'] ?? '');
-        $status = trim($_GET['status'] ?? '');
+        try {
+            $search = trim($_GET['search'] ?? '');
+            $status = trim($_GET['status'] ?? '');
 
-        $data = [
-            'admin_name' => $adminModel->getAdminName((int) ($_SESSION['user_id'] ?? 0)),
-            'jobs' => $adminModel->getAllJobPostings($search, $status),
-            'search' => $search,
-            'status' => $status,
-        ];
-        $this->view('admin/jobs', $data);
-    }
+            $adminModel = $this->model('Admin');
+            $jobs = $adminModel->getAllJobPostings($search, $status);
 
-    public function toggleJobStatus()
-    {
-        AuthGuard::requireLogin();
-        if (($_SESSION['role'] ?? null) !== 'admin') {
-            return $this->denyAccess();
+            $this->view('admin/jobs', [
+                'jobs' => $jobs,
+                'search' => $search,
+                'status' => $status
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[AdminController::jobs] Exception: ' . $e->getMessage());
+            $this->view('admin/jobs', [
+                'jobs' => [],
+                'search' => '',
+                'status' => ''
+            ]);
         }
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return $this->redirect('/admin/jobs');
-        }
-
-        $jobId  = (int) ($_POST['job_id'] ?? 0);
-        $status = $_POST['status'] ?? '';
-
-        if ($jobId > 0 && in_array($status, ['Open', 'Closed', 'Suspended'], true)) {
-            $this->model('Admin')->toggleJobStatus($jobId, $status);
-            Audit::write((int)$_SESSION['user_id'], 'job_status_toggled', "Admin toggled job #{$jobId} status to {$status}", 'job_posting', $jobId);
-            return $this->redirect('/admin/jobs?success=status_updated');
-        }
-        return $this->redirect('/admin/jobs?error=invalid_request');
     }
 
     public function skills()
@@ -309,39 +247,29 @@ class AdminController extends Controller
             return $this->denyAccess();
         }
 
-        $adminModel = $this->model('Admin');
-        $search = trim($_GET['q'] ?? '');
-        $categoryId = (int) ($_GET['category_id'] ?? 0);
+        try {
+            $search = trim($_GET['search'] ?? '');
+            $categoryId = (int) ($_GET['category_id'] ?? 0);
 
-        $data = [
-            'admin_name' => $adminModel->getAdminName((int) ($_SESSION['user_id'] ?? 0)),
-            'skills' => $adminModel->getAllMasterSkills($search, $categoryId),
-            'categories' => $adminModel->getSkillCategories(),
-            'search' => $search,
-            'category_id' => $categoryId,
-        ];
-        $this->view('admin/skills', $data);
-    }
+            $adminModel = $this->model('Admin');
+            $skills = $adminModel->getAllMasterSkills($search, $categoryId);
+            $categories = $adminModel->getSkillCategories();
 
-    public function addSkill()
-    {
-        AuthGuard::requireLogin();
-        if (($_SESSION['role'] ?? null) !== 'admin') {
-            return $this->denyAccess();
+            $this->view('admin/skills', [
+                'skills' => $skills,
+                'categories' => $categories,
+                'search' => $search,
+                'category_id' => $categoryId
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[AdminController::skills] Exception: ' . $e->getMessage());
+            $this->view('admin/skills', [
+                'skills' => [],
+                'categories' => [],
+                'search' => '',
+                'category_id' => 0
+            ]);
         }
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return $this->redirect('/admin/skills');
-        }
-
-        $skillName  = trim($_POST['skill_name'] ?? '');
-        $categoryId = (int) ($_POST['category_id'] ?? 0);
-
-        if ($skillName !== '' && $categoryId > 0) {
-            $this->model('Admin')->addSkill($skillName, $categoryId);
-            Audit::write((int)$_SESSION['user_id'], 'skill_created', "Admin created master skill '{$skillName}'", 'master_skill', 0);
-            return $this->redirect('/admin/skills?success=skill_created');
-        }
-        return $this->redirect('/admin/skills?error=invalid_data');
     }
 
     public function auditLogs()
@@ -351,98 +279,49 @@ class AdminController extends Controller
             return $this->denyAccess();
         }
 
-        return $this->redirect('/admin/dashboard');
-    }
-
-    public function viewDocument()
-    {
-        AuthGuard::requireLogin();
-
-        $rawFile = trim($_GET['file'] ?? '');
-        if ($rawFile === '') {
-            http_response_code(400);
-            echo "Error: No file specified.";
-            exit();
-        }
-
-        $filename = basename($rawFile);
-        $filePath = null;
-
         try {
-            $docModel = $this->model('Document');
-            $docInfo  = $docModel->findByStoredFilename($filename);
-            if ($docInfo && !empty($docInfo['path']) && is_file($docInfo['path'])) {
-                $filePath = $docInfo['path'];
-            }
-        } catch (Throwable $e) {
-            // Fallback candidate search
+            $adminModel = $this->model('Admin');
+            $logs = $adminModel->getAuditLogs(100);
+            $this->view('admin/audit_logs', ['logs' => $logs]);
+        } catch (\Throwable $e) {
+            error_log('[AdminController::auditLogs] Exception: ' . $e->getMessage());
+            $this->view('admin/audit_logs', ['logs' => []]);
         }
-
-        if (!$filePath) {
-            $candidates = [
-                BASE_PATH . 'storage/documents/' . $filename,
-                BASE_PATH . 'public/assets/uploads/permits/' . $filename,
-                BASE_PATH . 'storage/uploads/resumes/' . $filename,
-                BASE_PATH . 'storage/uploads/profile_photos/' . $filename,
-            ];
-            foreach ($candidates as $cand) {
-                if (is_file($cand)) {
-                    $filePath = $cand;
-                    break;
-                }
-            }
-        }
-
-        if (!$filePath || !is_file($filePath)) {
-            http_response_code(404);
-            header("Content-Type: text/plain");
-            echo "Document file not found on server.";
-            exit();
-        }
-
-        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        $mimeTypes = [
-            'pdf'  => 'application/pdf',
-            'png'  => 'image/png',
-            'jpg'  => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'webp' => 'image/webp',
-            'gif'  => 'image/gif',
-        ];
-
-        $contentType = $mimeTypes[$ext] ?? (mime_content_type($filePath) ?: 'application/octet-stream');
-
-        if (ob_get_level()) {
-            ob_end_clean();
-        }
-
-        header('Content-Type: ' . $contentType);
-        header('Content-Length: ' . filesize($filePath));
-        header('Content-Disposition: inline; filename="' . $filename . '"');
-        header('Cache-Control: private, max-age=86400');
-        readfile($filePath);
-        exit();
     }
 
-    // -------------------------------------------------------------------------
-    // LOGOUT
-    // -------------------------------------------------------------------------
     public function logout()
     {
-        // Destroy the session completely before redirecting.
-        session_unset();
-        session_destroy();
-
-        header("Location: /login?success=logged_out");
-        exit();
+        Audit::write($_SESSION['user_id'] ?? null, 'admin_logout', 'Admin logged out.');
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', [
+                'expires'  => time() - 42000,
+                'path'     => $p['path'] ?? '/',
+                'domain'   => $p['domain'] ?? '',
+                'secure'   => $p['secure'] ?? false,
+                'httponly' => $p['httponly'] ?? true,
+                'samesite' => $p['samesite'] ?? 'Lax',
+            ]);
+        }
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+        $this->redirect('/admin/login?success=logged_out');
     }
 
-    // -------------------------------------------------------------------------
-    // Shared helpers
-    // -------------------------------------------------------------------------
+    private function dbQuery($sql, $params = [])
+    {
+        try {
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
 
-    // Non-admin hitting an admin route: real 403 + the errors view, never a
-    // die() with a bare string (C-44).
     private function denyAccess()
     {
         http_response_code(403);
@@ -458,7 +337,6 @@ class AdminController extends Controller
         $httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
         $isAdminSubdomain = (strpos($httpHost, 'admin.') === 0);
 
-        // On admin subdomain (e.g. admin.sikaphub.com), clean up /admin/ prefix for root subdomain paths
         if ($isAdminSubdomain && strpos($path, '/admin/') === 0) {
             $path = substr($path, 6);
         }
@@ -469,37 +347,35 @@ class AdminController extends Controller
         exit();
     }
 
-
-    /**
-     * Enqueue an in-app notification for the employer (UC-03 step 11, UC-00d).
-     *
-     * Q-18: a direct INSERT. The NotificationService (C-36) is still to be
-     * built, and nothing renders the notifications table yet — this row is the
-     * durable record, not a delivered message.
-     *
-     * Same rule as SMTP (CLAUDE.md): a failed enqueue is logged and swallowed.
-     * It must never abort or roll back the verification decision that triggered
-     * it — the decision is already committed by the time we get here.
-     */
-    private function enqueueNotification($userId, $eventType, $employerId, $title, $body)
+    private function autoVerifyPendingPermits($adminModel)
     {
         try {
-            $db = Database::getInstance()->getConnection();
-            $stmt = $db->prepare(
-                "INSERT INTO notifications
-                    (user_id, event_type, entity_type, entity_id, title, body)
-                 VALUES
-                    (:user_id, :event_type, 'employer', :entity_id, :title, :body)"
-            );
-            $stmt->execute([
-                ':user_id'    => $userId,
-                ':event_type' => $eventType,
-                ':entity_id'  => $employerId,
-                ':title'      => mb_substr($title, 0, 150),
-                ':body'       => mb_substr($body, 0, 500),
-            ]);
-        } catch (Throwable $e) {
-            error_log('[notify] employer verification notification failed: ' . $e->getMessage());
+            $pending = $adminModel->getPendingEmployersWithPermits();
+            if (empty($pending)) return;
+
+            $aiEngine = new AIEngineService();
+            foreach ($pending as $emp) {
+                if (empty($emp['business_permit_file'])) continue;
+                if ($emp['verified_status'] !== 'Pending') continue;
+                if (!empty($emp['verification_status']) && $emp['verification_status'] !== 'pending_ai') continue;
+
+                $fullPath = BASE_PATH . 'storage/uploads/permits/' . $emp['business_permit_file'];
+                if (!file_exists($fullPath)) continue;
+
+                $analysis = $aiEngine->verifyPermitFile($fullPath, $emp['company_name']);
+                if (($analysis['status'] ?? '') === 'success') {
+                    $verifStatus = ($analysis['permit_status'] ?? '') === 'VALID' ? 'green_flag' : 'red_flag';
+                    $adminModel->updateEmployerPermitAnalysis(
+                        (int) $emp['employer_id'],
+                        $verifStatus,
+                        $analysis['extracted_text'] ?? '',
+                        (float) ($analysis['confidence_score'] ?? 0.0),
+                        $analysis['rejection_reasons'] ?? []
+                    );
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('[autoVerifyPendingPermits] error: ' . $e->getMessage());
         }
     }
 }
