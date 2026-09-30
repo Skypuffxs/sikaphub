@@ -87,7 +87,6 @@ class ProfileController extends Controller
         }
 
         $userId = (int) $_SESSION['user_id'];
-        $profileModel = $this->model('Profile');
         $uploadDir = $this->uploadDir('storage/uploads/resumes/');
 
         try {
@@ -102,11 +101,15 @@ class ProfileController extends Controller
             $mimeType = finfo_file($finfo, $fullPath) ?: 'application/octet-stream';
             finfo_close($finfo);
 
-            // Call Python AI Engine via AIEngineService
+            // Call Python AI Engine via AIEngineService (takes 10-30s)
             $aiEngine = new AIEngineService();
             $parseResult = $aiEngine->parseResumeFile($fullPath);
 
+            // Re-verify database connection and instantiate fresh models after long AI HTTP request
+            Database::getInstance()->getConnection();
+            $profileModel = $this->model('Profile');
             $jobseekerId = $this->model('JobSeeker')->getJobseekerIdByUserId($userId);
+
             $parsedPayload = $parseResult['profile'] ?? null;
             $status = ($parseResult['status'] ?? '') === 'success' ? 'parsed' : 'failed';
             $error = $parseResult['message'] ?? null;

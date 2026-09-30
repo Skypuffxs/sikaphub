@@ -3,36 +3,37 @@
 class Database
 {
     private static $instance = null;
-    private $conn;
+    private $conn = null;
 
-    // Private constructor prevents direct object creation
     private function __construct()
     {
-        // Load variables from the global $_ENV populated in index.php
-        $host = $_ENV['DB_HOST'];
-        $db = $_ENV['DB_NAME'];
-        $user = $_ENV['DB_USER'];
-        $pass = $_ENV['DB_PASS'];
-        $charset = $_ENV['DB_CHARSET'];
+        $this->connect();
+    }
+
+    private function connect()
+    {
+        $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $db = $_ENV['DB_NAME'] ?? '';
+        $user = $_ENV['DB_USER'] ?? '';
+        $pass = $_ENV['DB_PASS'] ?? '';
+        $charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
 
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 
         $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Throw exceptions on errors
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // Return arrays, not objects
-            PDO::ATTR_EMULATE_PREPARES => false, // Native prepared statements (Prevents SQL Injection)
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4, SESSION wait_timeout = 28800, SESSION interactive_timeout = 28800",
         ];
 
         try {
             $this->conn = new PDO($dsn, $user, $pass, $options);
-        }
-        catch (PDOException $e) {
-            // In production, log this to a file instead of displaying it
+        } catch (PDOException $e) {
             die("Database Connection Failed: " . $e->getMessage());
         }
     }
 
-    // The Singleton method
     public static function getInstance()
     {
         if (self::$instance === null) {
@@ -43,14 +44,24 @@ class Database
 
     public function getConnection()
     {
+        if ($this->conn === null) {
+            $this->connect();
+        } else {
+            try {
+                // Ping connection to verify server hasn't dropped it during long operations
+                $this->conn->query("SELECT 1");
+            } catch (\Throwable $e) {
+                // Connection died (e.g. 2006 MySQL server has gone away) — reconnect automatically
+                $this->connect();
+            }
+        }
         return $this->conn;
     }
 
-    // Prevent cloning of the instance
     private function __clone()
     {
     }
-    // Prevent unserializing of the instance
+
     public function __wakeup()
     {
     }
