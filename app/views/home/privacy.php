@@ -333,19 +333,19 @@
 <div class="navbar-wrap">
     <header class="navbar container">
 
-        <a href="/sikaphub/" class="logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
-            <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" style="height: 38px; width: auto; object-fit: contain;">
+        <a href="/" class="logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+            <img src="/public/assets/images/logo-icon.png" alt="SikapHub" style="height: 38px; width: auto; object-fit: contain;">
             <span style="font-weight: 800; font-size: 1.45rem; letter-spacing: -0.03em; color: #031a3f;">Sikap<span style="background: linear-gradient(135deg, #009cfb 0%, #1769ff 45%, #9035ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">hub</span></span>
         </a>
 
         <div class="nav-buttons">
-            <a href="/sikaphub/" class="back-link">
+            <a href="/" class="back-link">
                 ← Back to Home
             </a>
-            <a href="/sikaphub/login" class="login-btn">
+            <a href="/login" class="login-btn">
                 Log In
             </a>
-            <a href="/sikaphub/register" class="signup-btn">
+            <a href="/register" class="signup-btn">
                 Sign Up
             </a>
         </div>
@@ -506,9 +506,9 @@
                 <small>Smarter Jobs. Brighter Futures.</small>
             </div>
             <div style="font-size: 13px; color: #c2cede;">
-                <a href="/sikaphub/terms" style="color: #c2cede;">Terms of Service</a> &nbsp;&nbsp;|&nbsp;&nbsp;
-                <a href="/sikaphub/privacy" style="color: #1769ff; font-weight: 600;">Privacy Policy</a> &nbsp;&nbsp;|&nbsp;&nbsp;
-                <a href="/sikaphub/" style="color: #c2cede;">Home</a>
+                <a href="/terms" style="color: #c2cede;">Terms of Service</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="/privacy" style="color: #1769ff; font-weight: 600;">Privacy Policy</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="/" style="color: #c2cede;">Home</a>
             </div>
         </div>
 

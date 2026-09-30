@@ -13,8 +13,8 @@ $activeTab = 'skills';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -39,7 +39,7 @@ $activeTab = 'skills';
             </div>
             
             <!-- Add Skill Card Form -->
-            <form method="POST" action="/sikaphub/admin/add-skill" class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+            <form method="POST" action="/admin/add-skill" class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
                 <?php echo CSRF::csrfField(); ?>
                 <input type="text" name="skill_name" required placeholder="New skill name..." class="px-3 py-2 bg-slate-50 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <select name="category_id" required class="px-3 py-2 bg-slate-50 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -54,7 +54,7 @@ $activeTab = 'skills';
         </div>
 
         <!-- Search & Filter Bar -->
-        <form method="GET" action="/sikaphub/admin/skills" class="flex items-center gap-2 mb-6">
+        <form method="GET" action="/admin/skills" class="flex items-center gap-2 mb-6">
             <div class="relative">
                 <input type="text" name="q" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search skill name..." class="pl-9 pr-3 py-2 bg-white rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs w-56 md:w-64">
                 <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -136,13 +136,13 @@ $activeTab = 'skills';
                                     <td class="p-4 text-right">
                                         <div class="inline-flex gap-2">
                                             <?php if ($sk['status'] === 'pending'): ?>
-                                                <form method="POST" action="/sikaphub/admin/approve-skill" class="inline">
+                                                <form method="POST" action="/admin/approve-skill" class="inline">
                                                     <?php echo CSRF::csrfField(); ?>
                                                     <input type="hidden" name="skill_id" value="<?php echo (int)$sk['skill_id']; ?>">
                                                     <button type="submit" name="action" value="approve" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-xs">Approve</button>
                                                 </form>
                                             <?php endif; ?>
-                                            <form method="POST" action="/sikaphub/admin/approve-skill" onsubmit="return confirm('Delete this skill permanently?')" class="inline">
+                                            <form method="POST" action="/admin/approve-skill" onsubmit="return confirm('Delete this skill permanently?')" class="inline">
                                                 <?php echo CSRF::csrfField(); ?>
                                                 <input type="hidden" name="skill_id" value="<?php echo (int)$sk['skill_id']; ?>">
                                                 <button type="submit" name="action" value="delete" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-xs">Delete</button>

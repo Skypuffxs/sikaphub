@@ -13,13 +13,13 @@ class HomeController extends Controller
         // Redirect authenticated users to their active role dashboard
         if (!empty($_SESSION['user_id']) && !empty($_SESSION['role'])) {
             if ($_SESSION['role'] === 'jobseeker') {
-                header("Location: /sikaphub/dashboard");
+                header("Location: /dashboard");
                 exit();
             } elseif ($_SESSION['role'] === 'employer') {
-                header("Location: /sikaphub/employer/dashboard");
+                header("Location: /employer/dashboard");
                 exit();
             } elseif ($_SESSION['role'] === 'admin') {
-                header("Location: /sikaphub/admin/dashboard");
+                header("Location: /admin/dashboard");
                 exit();
             }
         }

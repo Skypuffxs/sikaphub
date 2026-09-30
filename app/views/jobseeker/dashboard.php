@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -44,21 +44,21 @@
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <a href="/sikaphub/dashboard" class="flex items-center gap-2.5">
-                    <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" class="w-8 h-8 rounded-lg object-contain flex-shrink-0">
+                <a href="/dashboard" class="flex items-center gap-2.5">
+                    <img src="/public/assets/images/logo-icon.png" alt="SikapHub" class="w-8 h-8 rounded-lg object-contain flex-shrink-0">
                     <span class="font-extrabold text-xl tracking-tight text-[#031a3f]">Sikap<span class="bg-gradient-to-r from-[#009cfb] via-[#1769ff] to-[#9035ff] bg-clip-text text-transparent">hub</span></span>
                 </a>
                 <div class="flex items-center gap-6">
-                    <a href="/sikaphub/dashboard" class="text-sm font-bold text-primary border-b-2 border-primary py-5">Find Jobs</a>
-                    <a href="/sikaphub/saved-jobs" class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">Saved Jobs</a>
-                    <a href="/sikaphub/my-applications" class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">My Applications</a>
+                    <a href="/dashboard" class="text-sm font-bold text-primary border-b-2 border-primary py-5">Find Jobs</a>
+                    <a href="/saved-jobs" class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">Saved Jobs</a>
+                    <a href="/my-applications" class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">My Applications</a>
                     
                     <!-- User Avatar & Dropdown -->
                     <div class="relative" id="user-menu-container">
                         <button id="user-menu-button" type="button" class="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-full">
                             <div class="w-9 h-9 rounded-full bg-indigo-100 border-2 border-primary flex items-center justify-center text-primary font-bold text-xs shadow-sm overflow-hidden">
                                 <?php if (!empty($context['profile_photo'])): ?>
-                                    <img src="/sikaphub/admin/view-document?file=<?php echo htmlspecialchars($context['profile_photo']); ?>" class="w-full h-full object-cover">
+                                    <img src="/admin/view-document?file=<?php echo htmlspecialchars($context['profile_photo']); ?>" class="w-full h-full object-cover">
                                 <?php else: ?>
                                     <?php
                                         $email = $_SESSION['email'] ?? 'User';
@@ -74,20 +74,20 @@
                                 <p class="text-xs text-slate-400 font-medium">Signed in as</p>
                                 <p class="text-sm font-bold text-slate-800 truncate"><?php echo htmlspecialchars($_SESSION['email'] ?? 'Job Seeker'); ?></p>
                             </div>
-                            <a href="/sikaphub/build-profile" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
+                            <a href="/build-profile" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
                                 Edit Profile
                             </a>
-                            <a href="/sikaphub/saved-jobs" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
+                            <a href="/saved-jobs" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
                                 Saved Jobs
                             </a>
-                            <a href="/sikaphub/my-applications" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
+                            <a href="/my-applications" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 My Applications
                             </a>
                             <div class="border-t border-slate-100 my-1"></div>
-                            <a href="/sikaphub/logout" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors">
+                            <a href="/logout" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors">
                                 <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
                                 Sign Out
                             </a>
@@ -149,7 +149,7 @@
                     <button type="button" class="filter-pill inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 cursor-pointer transition-all" data-filter="saved">
                         🔖 Saved Jobs
                     </button>
-                    <a href="/sikaphub/build-profile" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 transition-all">
+                    <a href="/build-profile" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 transition-all">
                         ⚙️ Profile (<?php echo (int)($profileCompleteness ?? 0); ?>%)
                     </a>
                 </div>
@@ -166,7 +166,7 @@
             <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
             <p class="text-sm text-blue-900 font-medium">
                 Complete your profile location to enhance geographic matching multipliers.
-                <a href="/sikaphub/build-profile" class="font-bold underline text-blue-700 hover:text-blue-800">Add home municipality &rarr;</a>
+                <a href="/build-profile" class="font-bold underline text-blue-700 hover:text-blue-800">Add home municipality &rarr;</a>
             </p>
         </div>
         <?php endif; ?>
@@ -253,7 +253,7 @@
                         </h3>
                         
                         <p class="text-xs font-bold text-slate-600 mb-2">
-                            <a href="/sikaphub/company/view?id=<?php echo htmlspecialchars($job['employer_id'] ?? 0); ?>" class="hover:underline font-bold text-slate-700 hover:text-primary">
+                            <a href="/company/view?id=<?php echo htmlspecialchars($job['employer_id'] ?? 0); ?>" class="hover:underline font-bold text-slate-700 hover:text-primary">
                                 <?php echo htmlspecialchars($job['company_name'] ?? ''); ?>
                             </a>
                             <span class="font-normal text-slate-400">• <?php echo htmlspecialchars($job['municipality_name'] ?? 'Guimba'); ?></span>
@@ -424,7 +424,7 @@
                     `;
                 } else {
                     actionBtnHtml = `
-                        <form method="POST" action="/sikaphub/apply" class="inline-block">
+                        <form method="POST" action="/apply" class="inline-block">
                             <input type="hidden" name="job_id" value="${job.id}">
                             <input type="hidden" name="csrf_token" value="${csrfToken}">
                             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-full text-sm shadow-md transition-all">
@@ -442,7 +442,7 @@
                             <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2 leading-tight">${escapeHtml(job.title)}</h2>
                             
                             <div class="flex items-center gap-2 text-sm font-semibold text-slate-600 mb-4 flex-wrap">
-                                <a href="/sikaphub/company/view?id=${job.employer_id}" class="text-primary hover:underline font-bold">🏢 ${escapeHtml(job.company)}</a>
+                                <a href="/company/view?id=${job.employer_id}" class="text-primary hover:underline font-bold">🏢 ${escapeHtml(job.company)}</a>
                                 <span>•</span>
                                 <span>${escapeHtml(job.municipality)}</span>
                                 <span>•</span>
@@ -623,7 +623,7 @@
                 formData.append('job_id', jobId);
                 formData.append('csrf_token', csrfToken);
 
-                fetch('/sikaphub/jobseeker/toggle-save-job', {
+                fetch('/jobseeker/toggle-save-job', {
                     method: 'POST',
                     body: formData
                 })
@@ -696,7 +696,7 @@
 
             // 8. Instant UI Update on Form Submit
             document.addEventListener('submit', function (e) {
-                const form = e.target.closest('form[action*="/sikaphub/apply"]');
+                const form = e.target.closest('form[action*="/apply"]');
                 if (form) {
                     const jobIdInput = form.querySelector('input[name="job_id"]');
                     if (jobIdInput && jobIdInput.value) {

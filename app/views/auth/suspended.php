@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account unavailable — S.I.K.A.P. Hub</title>
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
                 Please contact PESO Guimba to resolve this.
             </p>
             <p class="text-sm text-slate-700 font-semibold mt-5">PESO Guimba, Nueva Ecija</p>
-            <a href="/sikaphub/" class="inline-block mt-6 text-sm text-primary font-bold hover:underline">Return to home</a>
+            <a href="/" class="inline-block mt-6 text-sm text-primary font-bold hover:underline">Return to home</a>
         </div>
     </div>
 

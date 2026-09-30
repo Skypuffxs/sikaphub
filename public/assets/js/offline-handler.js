@@ -9,8 +9,8 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
             var isSubfolder = window.location.pathname.startsWith('/sikaphub');
-            var pathPrefix = isSubfolder ? '/sikaphub/' : '/';
-            var swUrl = isSubfolder ? '/sikaphub/sw.js' : '/sw.js';
+            var pathPrefix = isSubfolder ? '/' : '/';
+            var swUrl = isSubfolder ? '/sw.js' : '/sw.js';
 
             navigator.serviceWorker.register(swUrl, { scope: pathPrefix })
                 .then(function (registration) {

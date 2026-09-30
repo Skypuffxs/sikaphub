@@ -14,8 +14,8 @@ $activeTab = 'employers';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -38,7 +38,7 @@ $activeTab = 'employers';
                 <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Employer Management Directory</h1>
                 <p class="text-slate-500 text-sm mt-0.5">Review, verify, and monitor all registered businesses with AI Permit Audit Analytics.</p>
             </div>
-            <form method="GET" action="/sikaphub/admin/employers" class="flex items-center gap-2">
+            <form method="GET" action="/admin/employers" class="flex items-center gap-2">
                 <div class="relative">
                     <input type="text" name="q" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search company, contact..." class="pl-9 pr-3 py-2 bg-white rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-xs w-56 md:w-64">
                     <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -112,10 +112,10 @@ $activeTab = 'employers';
                                         <?php if (!empty($emp['business_permit_file'])): ?>
                                             <div class="flex flex-col gap-1.5 items-start">
                                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                                    <a href="javascript:void(0)" onclick="openPermitModal('/sikaphub/admin/view-document?file=<?php echo urlencode($emp['business_permit_file']); ?>', '<?php echo htmlspecialchars(addslashes($emp['company_name']), ENT_QUOTES); ?>')" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition-colors shadow-xs cursor-pointer">
+                                                    <a href="javascript:void(0)" onclick="openPermitModal('/admin/view-document?file=<?php echo urlencode($emp['business_permit_file']); ?>', '<?php echo htmlspecialchars(addslashes($emp['company_name']), ENT_QUOTES); ?>')" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition-colors shadow-xs cursor-pointer">
                                                         📄 View Permit
                                                     </a>
-                                                    <form method="POST" action="/sikaphub/admin/reanalyze-permit" class="inline">
+                                                    <form method="POST" action="/admin/reanalyze-permit" class="inline">
                                                         <?php echo CSRF::csrfField(); ?>
                                                         <input type="hidden" name="employer_id" value="<?php echo (int) $emp['employer_id']; ?>">
                                                         <button type="submit" title="Re-trigger AI Permit Audit" class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 hover:bg-slate-200 transition-colors shadow-xs">
@@ -169,7 +169,7 @@ $activeTab = 'employers';
                                         </span>
                                     </td>
                                     <td class="p-4 text-right">
-                                        <form method="POST" action="/sikaphub/admin/verify-employer" class="inline-flex gap-2">
+                                        <form method="POST" action="/admin/verify-employer" class="inline-flex gap-2">
                                             <?php echo CSRF::csrfField(); ?>
                                             <input type="hidden" name="employer_id" value="<?php echo (int) $emp['employer_id']; ?>">
                                             <?php if ($emp['verified_status'] !== 'Verified'): ?>

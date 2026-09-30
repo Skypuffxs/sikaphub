@@ -24,8 +24,8 @@ $activeTab = 'dashboard';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -53,7 +53,7 @@ $activeTab = 'dashboard';
                 <p class="text-slate-500 text-sm mt-0.5">Real-time platform analytics, verification queues, and AI skill moderation.</p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="/sikaphub/admin/export" target="_blank" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm">
+                <a href="/admin/export" target="_blank" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Export Executive PDF Report
                 </a>
@@ -245,14 +245,14 @@ $activeTab = 'dashboard';
                                                 <?php echo $vBadgeText; ?>
                                             </span>
                                             <?php if (!empty($emp['business_permit_file'])): ?>
-                                                <a href="javascript:void(0)" onclick="openPermitModal('/sikaphub/admin/view-document?file=<?php echo urlencode($emp['business_permit_file']); ?>', '<?php echo htmlspecialchars(addslashes($emp['company_name']), ENT_QUOTES); ?>')" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 hover:bg-indigo-100 cursor-pointer">
+                                                <a href="javascript:void(0)" onclick="openPermitModal('/admin/view-document?file=<?php echo urlencode($emp['business_permit_file']); ?>', '<?php echo htmlspecialchars(addslashes($emp['company_name']), ENT_QUOTES); ?>')" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 hover:bg-indigo-100 cursor-pointer">
                                                     📄 View Document
                                                 </a>
                                             <?php endif; ?>
                                         </div>
                                     </td>
                                     <td class="p-4 text-right">
-                                        <form method="POST" action="/sikaphub/admin/verify-employer" class="inline-flex gap-2">
+                                        <form method="POST" action="/admin/verify-employer" class="inline-flex gap-2">
                                             <?php echo CSRF::csrfField(); ?>
                                             <input type="hidden" name="employer_id" value="<?php echo (int)$emp['employer_id']; ?>">
                                             <button type="submit" name="status" value="Verified" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-xs">
@@ -320,12 +320,12 @@ $activeTab = 'dashboard';
                                     </td>
                                     <td class="p-4 text-right">
                                         <div class="inline-flex gap-2">
-                                            <form method="POST" action="/sikaphub/admin/approve-skill" class="inline">
+                                            <form method="POST" action="/admin/approve-skill" class="inline">
                                                 <?php echo CSRF::csrfField(); ?>
                                                 <input type="hidden" name="skill_id" value="<?php echo (int)$ps['skill_id']; ?>">
                                                 <button type="submit" name="action" value="approve" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-xs">Approve</button>
                                             </form>
-                                            <form method="POST" action="/sikaphub/admin/approve-skill" onsubmit="return confirm('Delete this custom skill proposal?')" class="inline">
+                                            <form method="POST" action="/admin/approve-skill" onsubmit="return confirm('Delete this custom skill proposal?')" class="inline">
                                                 <?php echo CSRF::csrfField(); ?>
                                                 <input type="hidden" name="skill_id" value="<?php echo (int)$ps['skill_id']; ?>">
                                                 <button type="submit" name="action" value="delete" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-xs">Delete</button>

@@ -8,8 +8,8 @@
     <?php require_once BASE_PATH . 'app/views/components/pwa_head.php'; ?>
     <meta name="description" content="Authorized PESO Admin portal for S.I.K.A.P. Hub Guimba.">
 
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -85,7 +85,7 @@
             </div>
         <?php endif; ?>
 
-        <form action="/sikaphub/admin/login" method="POST" class="space-y-5">
+        <form action="/admin/login" method="POST" class="space-y-5">
             <?php echo CSRF::csrfField(); ?>
 
             <div>
@@ -128,7 +128,7 @@
         </form>
 
         <div class="mt-8 pt-6 border-t border-slate-800 text-center">
-            <a href="/sikaphub/" class="text-xs font-medium text-slate-400 hover:text-white transition-colors inline-flex items-center gap-1">
+            <a href="/" class="text-xs font-medium text-slate-400 hover:text-white transition-colors inline-flex items-center gap-1">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>

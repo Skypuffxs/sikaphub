@@ -76,7 +76,7 @@ class RoleController extends Controller
     private function go($path)
     {
         $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $basePrefix = (strpos($scriptName, '/sikaphub/') === 0) ? '/sikaphub' : '';
+        $basePrefix = (strpos($scriptName, '/') === 0) ? '/sikaphub' : '';
         header('Location: ' . $basePrefix . $path);
         exit();
     }

@@ -164,7 +164,7 @@
 
         .hero-wrap {
             position: relative;
-            background-image: url('/sikaphub/public/assets/images/bg-landing.png');
+            background-image: url('/public/assets/images/bg-landing.png');
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
@@ -884,16 +884,16 @@
 <div class="navbar-wrap">
     <header class="navbar container">
 
-        <a href="/sikaphub/" class="logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
-            <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" style="height: 38px; width: auto; object-fit: contain;">
+        <a href="/" class="logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+            <img src="/public/assets/images/logo-icon.png" alt="SikapHub" style="height: 38px; width: auto; object-fit: contain;">
             <span style="font-weight: 800; font-size: 1.45rem; letter-spacing: -0.03em; color: #031a3f;">Sikap<span style="background: linear-gradient(135deg, #009cfb 0%, #1769ff 45%, #9035ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">hub</span></span>
         </a>
 
         <div class="nav-buttons">
-            <a href="/sikaphub/login" class="login-btn">
+            <a href="/login" class="login-btn">
                 Log In
             </a>
-            <a href="/sikaphub/register" class="signup-btn">
+            <a href="/register" class="signup-btn">
                 Sign Up
             </a>
         </div>
@@ -928,7 +928,7 @@
 
 
             <div style="margin-top: 30px;">
-                <a href="/sikaphub/login" class="signup-btn" style="padding: 16px 36px; font-size: 18px;">
+                <a href="/login" class="signup-btn" style="padding: 16px 36px; font-size: 18px;">
                     Get Started →
                 </a>
             </div>
@@ -942,7 +942,7 @@
             <div class="circle"></div>
 
             <div class="person">
-                <img src="/sikaphub/public/assets/images/aiimg.png" alt="Hero Illustration" onerror="this.style.display='none';">
+                <img src="/public/assets/images/aiimg.png" alt="Hero Illustration" onerror="this.style.display='none';">
             </div>
 
             <div class="match-card ai">
@@ -1224,7 +1224,7 @@
                 companies and start your journey today.
             </p>
 
-            <a href="/sikaphub/login" class="view-jobs">
+            <a href="/login" class="view-jobs">
                 View all jobs →
             </a>
 
@@ -1301,17 +1301,17 @@
         <div class="footer-main">
 
             <div class="footer-logo">
-                <a href="/sikaphub/" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
-                    <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" style="height: 38px; width: auto; object-fit: contain;">
+                <a href="/" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+                    <img src="/public/assets/images/logo-icon.png" alt="SikapHub" style="height: 38px; width: auto; object-fit: contain;">
                     <span style="font-weight: 800; font-size: 1.45rem; letter-spacing: -0.03em; color: #ffffff;">Sikap<span style="background: linear-gradient(135deg, #009cfb 0%, #1769ff 45%, #9035ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">hub</span></span>
                 </a>
                 <small>Smarter Jobs. Brighter Futures.</small>
             </div>
 
             <div class="footer-nav">
-                <a href="/sikaphub/">Home</a>
-                <a href="/sikaphub/login">Jobs</a>
-                <a href="/sikaphub/login">Employers</a>
+                <a href="/">Home</a>
+                <a href="/login">Jobs</a>
+                <a href="/login">Employers</a>
                 <a href="#how-it-works">About</a>
                 <a href="#features">Resources</a>
             </div>
@@ -1334,8 +1334,8 @@
             </span>
 
             <span>
-                <a href="/sikaphub/terms" style="color: inherit; text-decoration: underline;">Terms of Service</a> &nbsp;&nbsp;
-                <a href="/sikaphub/privacy" style="color: inherit; text-decoration: underline;">Privacy Policy</a> &nbsp;&nbsp;
+                <a href="/terms" style="color: inherit; text-decoration: underline;">Terms of Service</a> &nbsp;&nbsp;
+                <a href="/privacy" style="color: inherit; text-decoration: underline;">Privacy Policy</a> &nbsp;&nbsp;
                 Contact
             </span>
 
@@ -1370,7 +1370,7 @@ function searchJobs() {
     }
 
     alert(message + ". Redirecting to login...");
-    window.location.href = "/sikaphub/login";
+    window.location.href = "/login";
 
 }
 
@@ -1380,7 +1380,7 @@ document.querySelectorAll(".apply-btn").forEach(button => {
     button.addEventListener("click", function() {
 
         alert("Please log in or create a SIKAPHUB account to apply.");
-        window.location.href = "/sikaphub/login";
+        window.location.href = "/login";
 
     });
 

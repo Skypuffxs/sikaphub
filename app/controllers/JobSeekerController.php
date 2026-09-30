@@ -105,13 +105,13 @@ class JobSeekerController extends Controller
         AuthGuard::requireActiveProfile();
 
         if ($_SESSION['role'] !== 'jobseeker') {
-            header("Location: /sikaphub/dashboard?error=unauthorized");
+            header("Location: /dashboard?error=unauthorized");
             exit();
         }
 
         // 2. Enforce POST request to prevent CSRF via URL manipulation
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: /sikaphub/dashboard");
+            header("Location: /dashboard");
             exit();
         }
 
@@ -124,7 +124,7 @@ class JobSeekerController extends Controller
         $userId = $_SESSION['user_id'];
 
         if ($jobId === 0) {
-            header("Location: /sikaphub/dashboard?error=invalid_job");
+            header("Location: /dashboard?error=invalid_job");
             exit();
         }
 
@@ -135,7 +135,7 @@ class JobSeekerController extends Controller
 
         // 3. Graceful Duplicate Check (No more dead-end echoes)
         if ($jobSeekerModel->hasAlreadyApplied($jobseekerId, $jobId)) {
-            header("Location: /sikaphub/dashboard?error=already_applied");
+            header("Location: /dashboard?error=already_applied");
             exit();
         }
 
@@ -148,16 +148,16 @@ class JobSeekerController extends Controller
             $authoritativeScore = $result['final_score'];
         } catch (Throwable $e) {
             error_log('[apply] authoritative match computation failed: ' . $e->getMessage());
-            header("Location: /sikaphub/dashboard?error=score_unavailable");
+            header("Location: /dashboard?error=score_unavailable");
             exit();
         }
 
         // 5. Execute Point-in-Time Capture
         if ($jobSeekerModel->applyForJob($jobseekerId, $jobId, $authoritativeScore)) {
-            header("Location: /sikaphub/my-applications?success=applied");
+            header("Location: /my-applications?success=applied");
             exit();
         }
-        header("Location: /sikaphub/dashboard?error=system_error");
+        header("Location: /dashboard?error=system_error");
         exit();
     }
 
@@ -256,7 +256,7 @@ class JobSeekerController extends Controller
         AuthGuard::requireActiveProfile();
 
         if (($_SESSION['role'] ?? '') !== 'jobseeker') {
-            header('Location: /sikaphub/dashboard');
+            header('Location: /dashboard');
             exit();
         }
 

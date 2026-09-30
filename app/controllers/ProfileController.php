@@ -401,7 +401,7 @@ class ProfileController extends Controller
                 error_log('[profile] T1 recompute failed for user ' . $userId . ': ' . $e->getMessage());
             }
 
-            header("Location: /sikaphub/dashboard?profile_updated=1");
+            header("Location: /dashboard?profile_updated=1");
             exit();
         }
 
@@ -534,7 +534,7 @@ class ProfileController extends Controller
             'company_description'   => htmlspecialchars(trim($_POST['company_description'] ?? '')),
             'company_logo'          => $logoFilename,
             'company_website'       => $website !== '' ? filter_var($website, FILTER_SANITIZE_URL) : '',
-            'permit_file_path'      => $permitFilename ? '/sikaphub/storage/documents/' . $permitFilename : null,
+            'permit_file_path'      => $permitFilename ? '/storage/documents/' . $permitFilename : null,
             'verification_status'   => $aiVerificationStatus,
             'ai_feedback'           => $aiFeedback,
             'extracted_permit_data' => $extractedPermitData,
@@ -576,7 +576,7 @@ class ProfileController extends Controller
         if ($isCreate) {
             $_SESSION['account_status'] = 'Active';
         }
-        header('Location: /sikaphub/employer/dashboard?profile_updated=1');
+        header('Location: /employer/dashboard?profile_updated=1');
         exit();
     }
 

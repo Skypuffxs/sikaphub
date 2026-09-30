@@ -12,7 +12,7 @@ class EmployerController extends Controller
         AuthGuard::requireActiveProfile();
 
         if ($_SESSION['role'] !== 'employer') {
-            header("Location: /sikaphub/dashboard?error=unauthorized");
+            header("Location: /dashboard?error=unauthorized");
             exit();
         }
 
@@ -23,7 +23,7 @@ class EmployerController extends Controller
         if (!$employerId) {
             // Account is Active but no employers row — bounce to the builder,
             // matching AuthGuard::requireCompleteEntity(). Never die() (C-44).
-            header('Location: /sikaphub/build-profile');
+            header('Location: /build-profile');
             exit();
         }
 
@@ -64,7 +64,7 @@ class EmployerController extends Controller
         AuthGuard::requireActiveProfile();
 
         if ($_SESSION['role'] !== 'employer') {
-            header("Location: /sikaphub/dashboard?error=unauthorized");
+            header("Location: /dashboard?error=unauthorized");
             exit();
         }
 
@@ -75,7 +75,7 @@ class EmployerController extends Controller
         $appId = (int) ($_GET['app_id'] ?? $_POST['app_id'] ?? 0);
 
         if ($appId === 0) {
-            header("Location: /sikaphub/employer/dashboard?error=invalid_application");
+            header("Location: /employer/dashboard?error=invalid_application");
             exit();
         }
 
@@ -87,7 +87,7 @@ class EmployerController extends Controller
         try {
             $application = $employerModel->getApplicationDetails($appId, $employerId);
             if (!$application) {
-                header("Location: /sikaphub/employer/dashboard?error=access_denied_or_not_found");
+                header("Location: /employer/dashboard?error=access_denied_or_not_found");
                 exit();
             }
 
@@ -100,19 +100,19 @@ class EmployerController extends Controller
                 $allowedStatuses = ['Pending', 'Reviewed', 'Accepted', 'Rejected'];
 
                 if (!in_array($newStatus, $allowedStatuses, true)) {
-                    header("Location: /sikaphub/employer/review-candidate?app_id=" . $appId . "&error=invalid_status");
+                    header("Location: /employer/review-candidate?app_id=" . $appId . "&error=invalid_status");
                     exit();
                 }
 
                 // State Machine Guard: Prevent redundant updates
                 if ($newStatus === $currentStatus) {
-                    header("Location: /sikaphub/employer/review-candidate?app_id=" . $appId . "&status_updated=1");
+                    header("Location: /employer/review-candidate?app_id=" . $appId . "&status_updated=1");
                     exit();
                 }
 
                 // State Machine Guard: Prevent reverting backwards to Pending
                 if ($newStatus === 'Pending' && $currentStatus !== 'Pending') {
-                    header("Location: /sikaphub/employer/review-candidate?app_id=" . $appId . "&error=invalid_transition");
+                    header("Location: /employer/review-candidate?app_id=" . $appId . "&error=invalid_transition");
                     exit();
                 }
 
@@ -120,10 +120,10 @@ class EmployerController extends Controller
                 // own JOIN, so a cross-employer write cannot land even if this
                 // point were reached without the firewall above.
                 if ($employerModel->updateApplicationStatus($appId, $employerId, $newStatus)) {
-                    header("Location: /sikaphub/employer/review-candidate?app_id=" . $appId . "&status_updated=1");
+                    header("Location: /employer/review-candidate?app_id=" . $appId . "&status_updated=1");
                     exit();
                 } else {
-                    header("Location: /sikaphub/employer/review-candidate?app_id=" . $appId . "&error=database_error");
+                    header("Location: /employer/review-candidate?app_id=" . $appId . "&error=database_error");
                     exit();
                 }
             }
@@ -158,7 +158,7 @@ class EmployerController extends Controller
 
         $employerId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         if ($employerId === 0) {
-            header('Location: /sikaphub/dashboard?error=invalid_employer');
+            header('Location: /dashboard?error=invalid_employer');
             exit();
         }
 
@@ -166,7 +166,7 @@ class EmployerController extends Controller
         $company = $employerModel->getPublicCompanyProfile($employerId);
 
         if (!$company) {
-            header('Location: /sikaphub/dashboard?error=company_not_found');
+            header('Location: /dashboard?error=company_not_found');
             exit();
         }
 
@@ -186,7 +186,7 @@ class EmployerController extends Controller
         AuthGuard::requireActiveProfile();
 
         if (($_SESSION['role'] ?? '') !== 'employer') {
-            header("Location: /sikaphub/dashboard?error=unauthorized");
+            header("Location: /dashboard?error=unauthorized");
             exit();
         }
 
@@ -195,7 +195,7 @@ class EmployerController extends Controller
         $employerId = $employerModel->getEmployerId($userId);
 
         if (!$employerId) {
-            header('Location: /sikaphub/build-profile');
+            header('Location: /build-profile');
             exit();
         }
 
@@ -233,7 +233,7 @@ class EmployerController extends Controller
 
                         $safeFileName = 'permit_emp_' . $employerId . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
                         $destination = $uploadDir . $safeFileName;
-                        $webPath = '/sikaphub/public/assets/uploads/permits/' . $safeFileName;
+                        $webPath = '/public/assets/uploads/permits/' . $safeFileName;
 
                         if (move_uploaded_file($tmpPath, $destination)) {
                             $verificationStatus = 'pending';

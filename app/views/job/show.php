@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($job['job_title'] ?? 'Job Details'); ?> - S.I.K.A.P. Hub</title>
     <?php require_once BASE_PATH . 'app/views/components/pwa_head.php'; ?>
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
 
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -40,17 +40,17 @@
 <body class="bg-app-bg text-slate-800 antialiased min-h-screen flex flex-col">
     <!-- Navigation Bar -->
     <?php
-        $backUrl = '/sikaphub/dashboard';
+        $backUrl = '/dashboard';
         $backLabel = '← Back to Dashboard';
         if (($_GET['from'] ?? '') === 'saved-jobs' || (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'saved-jobs') !== false)) {
-            $backUrl = '/sikaphub/saved-jobs';
+            $backUrl = '/saved-jobs';
             $backLabel = '← Back to Saved Jobs';
         }
     ?>
     <nav class="bg-white border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <a href="/sikaphub/dashboard" class="flex items-center gap-2.5">
-                <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" class="w-8 h-8 rounded-lg object-contain flex-shrink-0">
+            <a href="/dashboard" class="flex items-center gap-2.5">
+                <img src="/public/assets/images/logo-icon.png" alt="SikapHub" class="w-8 h-8 rounded-lg object-contain flex-shrink-0">
                 <span class="text-[#173b72] font-extrabold text-xl tracking-tight">SIKAPHUB</span>
             </a>
             <a href="<?php echo $backUrl; ?>" class="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors"><?php echo $backLabel; ?></a>
@@ -64,7 +64,7 @@
                 <div>
                     <h1 class="text-2xl font-bold text-slate-900"><?php echo htmlspecialchars($job['job_title'] ?? ''); ?></h1>
                     <p class="text-primary font-bold text-sm mt-1">
-                        <a href="/sikaphub/company/view?id=<?php echo htmlspecialchars($job['employer_id'] ?? 0); ?>" class="hover:underline flex items-center gap-1">
+                        <a href="/company/view?id=<?php echo htmlspecialchars($job['employer_id'] ?? 0); ?>" class="hover:underline flex items-center gap-1">
                             🏢 <?php echo htmlspecialchars($job['company_name'] ?? ''); ?>
                         </a>
                     </p>
@@ -153,7 +153,7 @@
                             ✓ Application Submitted
                         </span>
                     <?php else: ?>
-                        <form method="POST" action="/sikaphub/apply" id="show-apply-form">
+                        <form method="POST" action="/apply" id="show-apply-form">
                             <input type="hidden" name="job_id" value="<?php echo htmlspecialchars($job['job_id'] ?? 0); ?>">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
                             <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl transition-colors shadow-sm">
@@ -196,7 +196,7 @@
                 formData.append('job_id', jobId);
                 formData.append('csrf_token', csrfToken);
 
-                fetch('/sikaphub/jobseeker/toggle-save-job', {
+                fetch('/jobseeker/toggle-save-job', {
                     method: 'POST',
                     body: formData
                 })

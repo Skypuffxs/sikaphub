@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose your account type — S.I.K.A.P. Hub</title>
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: { extend: { colors: {
@@ -32,8 +32,8 @@
 
         <div class="w-full max-w-lg">
 
-            <a href="/sikaphub/" class="flex items-center gap-3 mb-10 justify-center">
-                <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" class="w-10 h-10 object-contain flex-shrink-0">
+            <a href="/" class="flex items-center gap-3 mb-10 justify-center">
+                <img src="/public/assets/images/logo-icon.png" alt="SikapHub" class="w-10 h-10 object-contain flex-shrink-0">
                 <span class="font-extrabold text-3xl tracking-tight text-[#031a3f]">Sikap<span class="bg-gradient-to-r from-[#009cfb] via-[#1769ff] to-[#9035ff] bg-clip-text text-transparent">hub</span></span>
             </a>
 
@@ -48,7 +48,7 @@
                     </div>
                 <?php endif; ?>
 
-                <form action="/sikaphub/select-role" method="POST" class="mt-6 space-y-4">
+                <form action="/select-role" method="POST" class="mt-6 space-y-4">
                     <?php echo CSRF::csrfField(); ?>
 
                     <label class="role-card block border-2 border-slate-200 rounded-xl p-5">
@@ -86,7 +86,7 @@
             </div>
 
             <p class="text-sm text-slate-500 mt-6 text-center">
-                <a href="/sikaphub/logout" class="hover:underline">Sign out</a>
+                <a href="/logout" class="hover:underline">Sign out</a>
             </p>
 
         </div>

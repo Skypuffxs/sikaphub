@@ -10,8 +10,8 @@ $heading = $titles[$code] ?? 'Something went wrong';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($heading); ?> — S.I.K.A.P. Hub</title>
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@ $heading = $titles[$code] ?? 'Something went wrong';
             <p class="text-xs font-bold uppercase tracking-wide text-slate-400"><?php echo (int) $code; ?></p>
             <h1 class="text-xl font-extrabold text-slate-900 mt-1"><?php echo htmlspecialchars($heading); ?></h1>
             <p class="text-slate-500 mt-2 text-sm leading-relaxed"><?php echo htmlspecialchars($message); ?></p>
-            <a href="/sikaphub/build-profile" class="inline-block mt-6 text-sm text-primary font-bold text-indigo-600 hover:underline">Go back</a>
+            <a href="/build-profile" class="inline-block mt-6 text-sm text-primary font-bold text-indigo-600 hover:underline">Go back</a>
         </div>
     </div>
 </body>

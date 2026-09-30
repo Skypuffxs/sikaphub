@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($company['company_name'] ?? 'Company Profile'); ?> – S.I.K.A.P. Hub</title>
     <?php require_once BASE_PATH . 'app/views/components/pwa_head.php'; ?>
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
 
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -42,8 +42,8 @@
     <!-- Top Navigation Bar -->
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <a href="/sikaphub/dashboard" class="flex items-center gap-2.5">
-                <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" class="w-8 h-8 rounded-lg object-contain flex-shrink-0">
+            <a href="/dashboard" class="flex items-center gap-2.5">
+                <img src="/public/assets/images/logo-icon.png" alt="SikapHub" class="w-8 h-8 rounded-lg object-contain flex-shrink-0">
                 <span class="text-[#173b72] font-extrabold text-xl tracking-tight">SIKAPHUB</span>
             </a>
             <a href="javascript:history.back()" class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors flex items-center gap-1.5">
@@ -62,7 +62,7 @@
                     <!-- Logo / Avatar -->
                     <div class="w-20 h-20 rounded-2xl bg-indigo-100 border-2 border-primary/20 flex items-center justify-center text-primary font-black text-2xl shadow-sm flex-shrink-0 overflow-hidden">
                         <?php if (!empty($company['company_logo'])): ?>
-                            <img src="/sikaphub/admin/view-document?file=<?php echo htmlspecialchars($company['company_logo']); ?>" class="w-full h-full object-cover">
+                            <img src="/admin/view-document?file=<?php echo htmlspecialchars($company['company_logo']); ?>" class="w-full h-full object-cover">
                         <?php else: ?>
                             <?php echo htmlspecialchars(strtoupper(substr($company['company_name'] ?? 'C', 0, 2))); ?>
                         <?php endif; ?>
@@ -147,7 +147,7 @@
                                         </div>
 
                                         <h3 class="text-base font-extrabold text-slate-900 mb-1">
-                                            <a href="/sikaphub/job/view?id=<?php echo $job['job_id']; ?>" class="hover:text-primary transition-colors">
+                                            <a href="/job/view?id=<?php echo $job['job_id']; ?>" class="hover:text-primary transition-colors">
                                                 <?php echo htmlspecialchars($job['job_title']); ?>
                                             </a>
                                         </h3>
@@ -160,7 +160,7 @@
                                         </div>
                                     </div>
 
-                                    <a href="/sikaphub/job/view?id=<?php echo $job['job_id']; ?>" class="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 w-full sm:w-auto justify-center">
+                                    <a href="/job/view?id=<?php echo $job['job_id']; ?>" class="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 w-full sm:w-auto justify-center">
                                         View Job &rarr;
                                     </a>
                                 </div>

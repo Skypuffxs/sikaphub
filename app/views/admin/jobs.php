@@ -13,8 +13,8 @@ $activeTab = 'jobs';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -37,7 +37,7 @@ $activeTab = 'jobs';
                 <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Job Postings Moderation</h1>
                 <p class="text-slate-500 text-sm mt-0.5">Monitor all live, closed, or suspended vacancies across registered employers.</p>
             </div>
-            <form method="GET" action="/sikaphub/admin/jobs" class="flex items-center gap-2">
+            <form method="GET" action="/admin/jobs" class="flex items-center gap-2">
                 <div class="relative">
                     <input type="text" name="q" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search job title or company..." class="pl-9 pr-3 py-2 bg-white rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs w-56 md:w-64">
                     <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -98,7 +98,7 @@ $activeTab = 'jobs';
                             <?php foreach ($jobs as $j): ?>
                                 <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100">
                                     <td class="p-4 font-bold text-slate-900 text-base">
-                                        <a href="/sikaphub/job/view?id=<?php echo (int)$j['job_id']; ?>" target="_blank" class="hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5">
+                                        <a href="/job/view?id=<?php echo (int)$j['job_id']; ?>" target="_blank" class="hover:text-indigo-600 transition-colors inline-flex items-center gap-1.5">
                                             <span><?php echo htmlspecialchars($j['job_title']); ?></span>
                                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                         </a>
@@ -127,7 +127,7 @@ $activeTab = 'jobs';
                                         </span>
                                     </td>
                                     <td class="p-4 text-right">
-                                        <form method="POST" action="/sikaphub/admin/toggle-job-status" class="inline-flex gap-2">
+                                        <form method="POST" action="/admin/toggle-job-status" class="inline-flex gap-2">
                                             <?php echo CSRF::csrfField(); ?>
                                             <input type="hidden" name="job_id" value="<?php echo (int) $j['job_id']; ?>">
                                             <?php if ($j['job_status'] !== 'Open'): ?>

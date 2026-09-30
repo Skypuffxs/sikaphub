@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
     <?php require_once BASE_PATH . 'app/views/components/pwa_head.php'; ?>
     
     <style>
@@ -184,7 +184,7 @@
 <body>
     <div class="offline-card">
         <div class="brand-logo">
-            <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub Logo" onerror="this.style.display='none'">
+            <img src="/public/assets/images/logo-icon.png" alt="SikapHub Logo" onerror="this.style.display='none'">
         </div>
 
         <div class="status-badge">
@@ -211,7 +211,7 @@
             <button type="button" class="btn-primary" onclick="window.sikapCheckConnection()">
                 <span>⚡</span> Try Reconnecting
             </button>
-            <a href="/sikaphub/" class="btn-secondary">
+            <a href="/" class="btn-secondary">
                 Return to Home
             </a>
         </div>

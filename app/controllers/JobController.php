@@ -28,14 +28,14 @@ class JobController extends Controller
         if (!$employerId) {
             // Active account, no employers row — back to the builder (C-44,
             // matching AuthGuard::requireCompleteEntity()).
-            header('Location: /sikaphub/build-profile');
+            header('Location: /build-profile');
             exit();
         }
 
         // 2. Publish gate — anything other than Verified cannot post (UC-04 pre).
         $employerDetails = $employerModel->getEmployerDetails($employerId);
         if (($employerDetails['verified_status'] ?? 'Pending') !== 'Verified') {
-            header('Location: /sikaphub/employer/dashboard?error=pending_verification');
+            header('Location: /employer/dashboard?error=pending_verification');
             exit();
         }
 
@@ -161,7 +161,7 @@ class JobController extends Controller
             error_log('[job publish] T2 recompute failed for job ' . $newJobId . ': ' . $e->getMessage());
         }
 
-        header('Location: /sikaphub/employer/dashboard?job_posted=1');
+        header('Location: /employer/dashboard?job_posted=1');
         exit();
     }
 
@@ -172,7 +172,7 @@ class JobController extends Controller
         $jobId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
         if ($jobId === 0) {
-            header("Location: /sikaphub/dashboard?error=invalid_job");
+            header("Location: /dashboard?error=invalid_job");
             exit();
         }
 
@@ -182,7 +182,7 @@ class JobController extends Controller
         $job = $jobModel->getOpenJobDetails($jobId);
 
         if (!$job) {
-            header("Location: /sikaphub/dashboard?error=job_unavailable");
+            header("Location: /dashboard?error=job_unavailable");
             exit();
         }
 

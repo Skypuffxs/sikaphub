@@ -59,11 +59,11 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
 
-    <link href="/sikaphub/public/assets/css/tom-select.css" rel="stylesheet">
-    <script src="/sikaphub/public/assets/js/tom-select.js"></script>
+    <link href="/public/assets/css/tom-select.css" rel="stylesheet">
+    <script src="/public/assets/js/tom-select.js"></script>
 
     <script>
         tailwind.config = {
@@ -107,23 +107,23 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <a href="/sikaphub/dashboard" class="flex items-center gap-2.5">
-                    <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" class="w-8 h-8 rounded-lg object-contain flex-shrink-0">
+                <a href="/dashboard" class="flex items-center gap-2.5">
+                    <img src="/public/assets/images/logo-icon.png" alt="SikapHub" class="w-8 h-8 rounded-lg object-contain flex-shrink-0">
                     <span class="font-extrabold text-xl tracking-tight text-[#031a3f]">Sikap<span class="bg-gradient-to-r from-[#009cfb] via-[#1769ff] to-[#9035ff] bg-clip-text text-transparent">hub</span></span>
                     <span class="bg-blue-50 text-blue-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider border border-blue-100 hidden sm:inline-block">Jobseeker Portal</span>
                 </a>
                 
                 <div class="flex items-center gap-6">
-                    <a href="/sikaphub/dashboard" class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">Job Feed</a>
-                    <a href="/sikaphub/jobseeker/tracker" class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">My Applications</a>
-                    <a href="/sikaphub/build-profile" class="text-sm font-bold text-primary border-b-2 border-primary py-5">Profile</a>
+                    <a href="/dashboard" class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">Job Feed</a>
+                    <a href="/jobseeker/tracker" class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors">My Applications</a>
+                    <a href="/build-profile" class="text-sm font-bold text-primary border-b-2 border-primary py-5">Profile</a>
                     
                     <!-- User Menu Dropdown -->
                     <div class="relative" id="user-menu-container">
                         <button id="user-menu-button" type="button" class="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-full">
                             <div class="w-9 h-9 rounded-full bg-slate-900 border-2 border-primary flex items-center justify-center text-white font-bold text-xs shadow-xs overflow-hidden">
                                 <?php if (!empty($p['profile_photo'])): ?>
-                                    <img src="/sikaphub/admin/view-document?file=<?php echo htmlspecialchars($p['profile_photo']); ?>" class="w-full h-full object-cover">
+                                    <img src="/admin/view-document?file=<?php echo htmlspecialchars($p['profile_photo']); ?>" class="w-full h-full object-cover">
                                 <?php else: ?>
                                     <?php
                                         $initials = strtoupper(substr($firstName ?: ($userEmail ?: 'U'), 0, 2));
@@ -138,16 +138,16 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                                 <p class="text-xs text-slate-400 font-medium">Signed in as</p>
                                 <p class="text-sm font-bold text-slate-800 truncate"><?php echo $userEmail; ?></p>
                             </div>
-                            <a href="/sikaphub/build-profile" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
+                            <a href="/build-profile" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 1114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
                                 Edit Profile
                             </a>
-                            <a href="/sikaphub/jobseeker/tracker" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
+                            <a href="/jobseeker/tracker" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 My Applications
                             </a>
                             <div class="border-t border-slate-100 my-1"></div>
-                            <a href="/sikaphub/logout" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors">
+                            <a href="/logout" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors">
                                 <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
                                 Sign Out
                             </a>
@@ -172,7 +172,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                         <p class="text-xs text-emerald-100 mt-0.5">Your candidate profile is active and synchronized with employer job match scores.</p>
                     </div>
                 </div>
-                <a href="/sikaphub/dashboard" class="px-4 py-2 bg-white text-emerald-700 font-bold text-xs rounded-xl hover:bg-emerald-50 transition-colors shadow-xs">Find Jobs</a>
+                <a href="/dashboard" class="px-4 py-2 bg-white text-emerald-700 font-bold text-xs rounded-xl hover:bg-emerald-50 transition-colors shadow-xs">Find Jobs</a>
             </div>
         <?php endif; ?>
 
@@ -185,7 +185,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                     <div class="relative flex-shrink-0 group">
                         <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-2 border-slate-100 shadow-md overflow-hidden bg-slate-900 flex items-center justify-center text-white text-3xl font-extrabold">
                             <?php if (!empty($p['profile_photo'])): ?>
-                                <img src="/sikaphub/admin/view-document?file=<?php echo htmlspecialchars($p['profile_photo']); ?>" alt="Profile Photo" class="photo-preview-img w-full h-full object-cover">
+                                <img src="/admin/view-document?file=<?php echo htmlspecialchars($p['profile_photo']); ?>" alt="Profile Photo" class="photo-preview-img w-full h-full object-cover">
                             <?php else: ?>
                                 <span class="photo-initials text-white"><?php echo strtoupper(substr($firstName ?: ($userEmail ?: 'U'), 0, 1)); ?></span>
                                 <img class="photo-preview-img w-full h-full object-cover hidden" alt="Profile Photo Preview">
@@ -194,7 +194,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                         <label for="hero_photo_input" class="absolute -bottom-2 -right-2 bg-primary hover:bg-primary-hover text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-md cursor-pointer transition-transform hover:scale-105 border-2 border-white" title="Upload New Photo">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0c-.693.047-1.332.428-1.736 1.039l-.821 1.316z" /></svg>
                         </label>
-                        <form id="hero_photo_form" method="POST" action="/sikaphub/build-profile" enctype="multipart/form-data" class="hidden">
+                        <form id="hero_photo_form" method="POST" action="/build-profile" enctype="multipart/form-data" class="hidden">
                             <?php echo CSRF::csrfField(); ?>
                             <input type="file" id="hero_photo_input" name="profile_photo" accept="image/jpeg,image/png,image/webp" onchange="this.form.submit()">
                         </form>
@@ -234,7 +234,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                     </button>
 
                     <?php if (!empty($p['resume']['stored_filename'])): ?>
-                        <a href="/sikaphub/admin/view-document?file=<?php echo htmlspecialchars($p['resume']['stored_filename']); ?>" target="_blank" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2">
+                        <a href="/admin/view-document?file=<?php echo htmlspecialchars($p['resume']['stored_filename']); ?>" target="_blank" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2">
                             <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
                             View Resume
                         </a>
@@ -451,7 +451,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                                     </div>
                                 </div>
                                 <div class="mt-3 flex items-center gap-2">
-                                    <a href="/sikaphub/admin/view-document?file=<?php echo htmlspecialchars($p['resume']['stored_filename']); ?>" target="_blank" class="flex-1 py-2 text-center text-xs font-bold bg-white text-primary border border-slate-200 rounded-lg hover:bg-primary hover:text-white transition-all shadow-xs">
+                                    <a href="/admin/view-document?file=<?php echo htmlspecialchars($p['resume']['stored_filename']); ?>" target="_blank" class="flex-1 py-2 text-center text-xs font-bold bg-white text-primary border border-slate-200 rounded-lg hover:bg-primary hover:text-white transition-all shadow-xs">
                                         View Document
                                     </a>
                                 </div>
@@ -462,7 +462,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                             </div>
                         <?php endif; ?>
 
-                        <form method="POST" action="/sikaphub/build-profile" enctype="multipart/form-data">
+                        <form method="POST" action="/build-profile" enctype="multipart/form-data">
                             <?php echo CSRF::csrfField(); ?>
                             <input type="hidden" name="first_name" value="<?php echo $firstName; ?>">
                             <input type="hidden" name="last_name" value="<?php echo $lastName; ?>">
@@ -568,7 +568,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                     </div>
                 </div>
 
-                <form method="POST" action="/sikaphub/build-profile" enctype="multipart/form-data" id="profile-wizard-form" novalidate>
+                <form method="POST" action="/build-profile" enctype="multipart/form-data" id="profile-wizard-form" novalidate>
                     <?php echo CSRF::csrfField(); ?>
 
                     <!-- STEP 1 – IDENTITY & PHOTO -->
@@ -583,7 +583,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                             <div class="relative group flex-shrink-0">
                                 <div class="w-20 h-20 rounded-xl border-2 border-white shadow-md overflow-hidden bg-slate-900 flex items-center justify-center text-white text-2xl font-bold">
                                     <?php if (!empty($p['profile_photo'])): ?>
-                                        <img src="/sikaphub/admin/view-document?file=<?php echo htmlspecialchars($p['profile_photo']); ?>" alt="Profile Photo" class="photo-preview-img w-full h-full object-cover">
+                                        <img src="/admin/view-document?file=<?php echo htmlspecialchars($p['profile_photo']); ?>" alt="Profile Photo" class="photo-preview-img w-full h-full object-cover">
                                     <?php else: ?>
                                         <span class="photo-initials text-white"><?php echo strtoupper(substr($firstName ?: ($userEmail ?: 'U'), 0, 1)); ?></span>
                                         <img class="photo-preview-img w-full h-full object-cover hidden" alt="Profile Photo Preview">
@@ -867,7 +867,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                                         <div class="text-xs font-bold text-slate-800 truncate"><?php echo htmlspecialchars($p['resume']['original_filename'] ?? 'Uploaded Resume'); ?></div>
                                         <div class="text-[10px] text-emerald-600 font-bold">Active Resume File</div>
                                     </div>
-                                    <a href="/sikaphub/admin/view-document?file=<?php echo htmlspecialchars($p['resume']['stored_filename']); ?>" target="_blank" class="text-xs font-bold text-primary hover:underline">
+                                    <a href="/admin/view-document?file=<?php echo htmlspecialchars($p['resume']['stored_filename']); ?>" target="_blank" class="text-xs font-bold text-primary hover:underline">
                                         View Document
                                     </a>
                                 </div>
@@ -1365,7 +1365,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                 brgySelect.disabled = true;
                 return;
             }
-            fetch('/sikaphub/profile/barangays?municipality_id=' + encodeURIComponent(municipalityId))
+            fetch('/profile/barangays?municipality_id=' + encodeURIComponent(municipalityId))
                 .then(function (r) { return r.json(); })
                 .then(function (rows) {
                     brgySelect.innerHTML = '<option value="">— Select barangay —</option>';
@@ -1425,7 +1425,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                     formData.append('csrf_token', csrfInput.value);
                 }
 
-                fetch('/sikaphub/profile/parse-resume', {
+                fetch('/profile/parse-resume', {
                     method: 'POST',
                     body: formData
                 })

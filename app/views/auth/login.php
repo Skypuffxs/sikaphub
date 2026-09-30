@@ -8,8 +8,8 @@
     <?php require_once BASE_PATH . 'app/views/components/pwa_head.php'; ?>
     <meta name="description" content="Sign in to S.I.K.A.P. Hub with a one-time code sent to your email.">
 
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -55,7 +55,7 @@
         <!-- ===== LEFT COLUMN: FORM ===== -->
         <div class="flex flex-col justify-center px-8 sm:px-16 md:px-24 lg:px-16 xl:px-24 relative py-16">
 
-            <a href="/sikaphub/"
+            <a href="/"
                class="absolute top-8 left-8 flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors font-medium group">
                 <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -63,8 +63,8 @@
                 Back to Home
             </a>
 
-            <a href="/sikaphub/" class="flex items-center gap-3 mb-12">
-                <img src="/sikaphub/public/assets/images/logo-icon.png" alt="SikapHub" class="w-10 h-10 object-contain flex-shrink-0">
+            <a href="/" class="flex items-center gap-3 mb-12">
+                <img src="/public/assets/images/logo-icon.png" alt="SikapHub" class="w-10 h-10 object-contain flex-shrink-0">
                 <span class="font-extrabold text-3xl tracking-tight text-[#031a3f]">Sikap<span class="bg-gradient-to-r from-[#009cfb] via-[#1769ff] to-[#9035ff] bg-clip-text text-transparent">hub</span></span>
             </a>
 
@@ -86,7 +86,7 @@
                 </div>
             <?php endif; ?>
 
-            <form action="/sikaphub/auth/otp/request" method="POST" class="mt-6">
+            <form action="/auth/otp/request" method="POST" class="mt-6">
                 <?php echo CSRF::csrfField(); ?>
 
                 <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">Email address</label>
@@ -112,9 +112,9 @@
 
             <p class="text-xs text-slate-500 mt-6 text-center leading-relaxed">
                 By continuing with any of the options above, you agree to our
-                <a href="/sikaphub/terms" class="text-primary font-medium underline hover:text-primary-hover">Terms of Service</a>
+                <a href="/terms" class="text-primary font-medium underline hover:text-primary-hover">Terms of Service</a>
                 and have read our
-                <a href="/sikaphub/privacy" class="text-primary font-medium underline hover:text-primary-hover">Privacy Policy</a>.
+                <a href="/privacy" class="text-primary font-medium underline hover:text-primary-hover">Privacy Policy</a>.
             </p>
 
             <p class="text-xs text-slate-400 mt-3 text-center leading-relaxed">

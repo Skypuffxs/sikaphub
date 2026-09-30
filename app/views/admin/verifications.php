@@ -11,8 +11,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/sikaphub/public/assets/css/theme.css">
-    <script src="/sikaphub/public/assets/js/tailwind.js"></script>
+    <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <script src="/public/assets/js/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -150,7 +150,7 @@
                                         <?php endif; ?>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <a href="/sikaphub/admin/verifications?employer_id=<?php echo $emp['employer_id']; ?>" class="inline-flex items-center px-3.5 py-1.5 text-xs font-bold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-sm transition-colors">
+                                        <a href="/admin/verifications?employer_id=<?php echo $emp['employer_id']; ?>" class="inline-flex items-center px-3.5 py-1.5 text-xs font-bold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-sm transition-colors">
                                             Review Submission →
                                         </a>
                                     </td>
@@ -184,7 +184,7 @@
                             <h3 class="text-lg font-bold text-white">Business Permit Verification Audit</h3>
                             <p class="text-xs text-slate-400">Employer ID #<?php echo $emp['employer_id']; ?> — <?php echo htmlspecialchars($emp['company_name']); ?></p>
                         </div>
-                        <a href="/sikaphub/admin/verifications" class="text-slate-400 hover:text-white font-bold text-lg px-2">✕</a>
+                        <a href="/admin/verifications" class="text-slate-400 hover:text-white font-bold text-lg px-2">✕</a>
                     </div>
 
                     <!-- Modal Body Grid -->
@@ -263,7 +263,7 @@
 
                         <div class="flex items-center gap-3">
                             <!-- Reject Action Form -->
-                            <form action="/sikaphub/admin/verify-employer" method="POST" onsubmit="return confirm('Reject this employer business permit verification?');">
+                            <form action="/admin/verify-employer" method="POST" onsubmit="return confirm('Reject this employer business permit verification?');">
                                 <?php echo CSRF::csrfField(); ?>
                                 <input type="hidden" name="employer_id" value="<?php echo $emp['employer_id']; ?>">
                                 <input type="hidden" name="status" value="Rejected">
@@ -273,7 +273,7 @@
                             </form>
 
                             <!-- Approve Action Form -->
-                            <form action="/sikaphub/admin/verify-employer" method="POST" onsubmit="return confirm('Approve and verify this employer account?');">
+                            <form action="/admin/verify-employer" method="POST" onsubmit="return confirm('Approve and verify this employer account?');">
                                 <?php echo CSRF::csrfField(); ?>
                                 <input type="hidden" name="employer_id" value="<?php echo $emp['employer_id']; ?>">
                                 <input type="hidden" name="status" value="Verified">
