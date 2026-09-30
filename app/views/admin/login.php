@@ -8,27 +8,32 @@
     <?php require_once BASE_PATH . 'app/views/components/pwa_head.php'; ?>
     <meta name="description" content="Authorized PESO Admin portal for S.I.K.A.P. Hub Guimba.">
 
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/public/assets/css/theme.css">
+    <link rel="stylesheet" href="https://sikaphub.com/public/assets/css/theme.css">
     <script src="/public/assets/js/tailwind.js"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0f172a',
-                        'primary-hover': '#1e293b',
-                        secondary: '#1e3a8a',
-                        'app-bg': '#070d1e',
-                        surface: '#0f172a',
-                        border: '#1e293b'
-                    },
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif']
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#0f172a',
+                            'primary-hover': '#1e293b',
+                            secondary: '#1e3a8a',
+                            'app-bg': '#070d1e',
+                            surface: '#0f172a',
+                            border: '#1e293b'
+                        },
+                        fontFamily: {
+                            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif']
+                        }
                     }
                 }
             }
         }
     </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -69,12 +74,9 @@
 
         <!-- Header Branding & Badge -->
         <div class="flex flex-col items-center text-center mb-8">
-            <div class="relative mb-5 group">
-                <div class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 blur opacity-40 group-hover:opacity-75 transition duration-300"></div>
                 <div class="relative w-16 h-16 bg-slate-900 border border-slate-700/80 rounded-2xl flex items-center justify-center shadow-xl">
-                    <img src="/public/assets/images/logo-icon.png" alt="SikapHub Logo" class="w-10 h-10 object-contain">
+                    <img src="https://sikaphub.com/public/assets/images/logo-icon.png" onerror="this.onerror=null; this.src='/public/assets/images/logo-icon.png';" alt="SikapHub Logo" class="w-10 h-10 object-contain">
                 </div>
-            </div>
 
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-500/10 border border-blue-400/20 text-blue-400 uppercase tracking-wider mb-3">
                 <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>

@@ -5,8 +5,13 @@
     # Block direct access to hidden files
     RewriteRule "(^|/)\." - [F,L]
 
-    # Route all requests for admin.sikaphub.com to index.php
+    # Serve static assets from main public directory if requested on subdomain
+    RewriteRule ^public/(.*)$ ../public/$1 [L,NC]
+    RewriteRule ^assets/(.*)$ ../public/assets/$1 [L,NC]
+
+    # Route all other request paths to index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
+
