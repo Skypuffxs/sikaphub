@@ -182,30 +182,8 @@ if ($isAdminSubdomain) {
     $router->post('/employer/upload-permit', ['EmployerController', 'uploadPermit']);
     $router->post('/employer/compare-candidates', ['EmployerController', 'compareCandidates']);
 
-    // Redirect main domain /admin requests to the official admin subdomain (https://admin.sikaphub.com/)
-    $redirectAdminSubdomain = function() {
-        header('Location: https://admin.sikaphub.com/');
-        exit();
-    };
-    $router->get('/admin',                   $redirectAdminSubdomain);
-    $router->get('/admin/',                  $redirectAdminSubdomain);
-    $router->get('/admin/login',             $redirectAdminSubdomain);
-    $router->post('/admin/login',            $redirectAdminSubdomain);
-    $router->get('/admin/dashboard',         ['AdminController', 'dashboard']);
-    $router->get('/admin/verifications',     ['AdminController', 'verifications']);
-    $router->get('/admin/export',            ['AdminController', 'exportPdf']);
-    $router->get('/admin/employers',         ['AdminController', 'employers']);
-    $router->get('/admin/seekers',           ['AdminController', 'seekers']);
-    $router->get('/admin/jobs',              ['AdminController', 'jobs']);
-    $router->get('/admin/skills',            ['AdminController', 'skills']);
-    $router->get('/admin/audit-logs',        ['AdminController', 'auditLogs']);
-    $router->get('/admin/logout',            ['AdminController', 'logout']);
-    $router->post('/admin/verify-employer',  ['AdminController', 'verifyEmployer']);
-    $router->post('/admin/approve-skill',    ['AdminController', 'approveSkill']);
+    // Secure Document Gateway only on Main Domain (Profile Photos, Resumes, Business Permits)
     $router->get('/admin/view-document',     ['AdminController', 'viewDocument']);
-    $router->post('/admin/toggle-job-status',['AdminController', 'toggleJobStatus']);
-    $router->post('/admin/add-skill',        ['AdminController', 'addSkill']);
-    $router->post('/admin/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
 }
 
 // 8. Dispatch the Request
