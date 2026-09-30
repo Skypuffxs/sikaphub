@@ -6,6 +6,61 @@ require_once BASE_PATH . 'app/helpers/Audit.php';
 
 class AdminController extends Controller
 {
+    public function loginForm()
+    {
+        if (isset($_SESSION['user_id']) && ($_SESSION['role'] ?? null) === 'admin') {
+            $this->redirect('/admin/dashboard');
+        }
+        $error = $_SESSION['admin_auth_error'] ?? null;
+        unset($_SESSION['admin_auth_error']);
+        $this->view('admin/login', ['error' => $error]);
+    }
+
+    public function login()
+    {
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        if (empty($username) || empty($password)) {
+            $_SESSION['admin_auth_error'] = 'Enter both username and password.';
+            $this->redirect('/admin/login');
+        }
+
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "SELECT pa.admin_id, pa.user_id, pa.username, pa.password_hash, u.email, u.role, u.account_status
+             FROM peso_admins pa
+             JOIN users u ON pa.user_id = u.user_id
+             WHERE (pa.username = :username OR u.email = :email) AND u.role = 'admin'
+             LIMIT 1"
+        );
+        $stmt->execute([':username' => $username, ':email' => $username]);
+        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$admin || !password_verify($password, $admin['password_hash'])) {
+            Audit::write(null, 'admin_login_failed', 'Failed admin login attempt for username: ' . $username);
+            $_SESSION['admin_auth_error'] = 'Invalid username or password.';
+            $this->redirect('/admin/login');
+        }
+
+        if (in_array($admin['account_status'], ['Suspended', 'Deactivated'], true)) {
+            $_SESSION['admin_auth_error'] = 'This account has been ' . strtolower($admin['account_status']) . '.';
+            $this->redirect('/admin/login');
+        }
+
+        session_regenerate_id(true);
+        $_SESSION['user_id']        = (int) $admin['user_id'];
+        $_SESSION['email']          = $admin['email'];
+        $_SESSION['role']           = 'admin';
+        $_SESSION['account_status'] = $admin['account_status'];
+        $_SESSION['ua_hash']        = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? '');
+        $_SESSION['last_activity']  = time();
+
+        Audit::write((int) $admin['user_id'], 'admin_login_success', 'Successful username/password login for ' . $username);
+
+        $this->redirect('/admin/dashboard');
+    }
+
     public function dashboard()
     {
         AuthGuard::requireLogin();

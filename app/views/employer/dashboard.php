@@ -73,7 +73,7 @@
                     
                     <!-- User Avatar & Dropdown -->
                     <div class="relative" id="user-menu-container">
-                        <button id="user-menu-button" type="button" onclick="event.stopPropagation(); const d=document.getElementById('user-menu-dropdown'); if(d) d.classList.toggle('hidden');" class="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-full cursor-pointer">
+                        <button id="user-menu-button" type="button" class="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-full cursor-pointer">
                             <div class="w-9 h-9 rounded-full bg-slate-900 border-2 border-primary flex items-center justify-center text-white font-bold text-xs shadow-sm overflow-hidden">
                                 <?php
                                     $email = $_SESSION['email'] ?? 'Employer';
@@ -268,13 +268,21 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-3 self-start md:self-auto">
+                        <div class="flex items-center gap-3 self-start md:self-auto flex-wrap">
                             <span class="text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
                                 Posted <?php echo date('M d, Y', strtotime($job['date_posted'])); ?>
                             </span>
                             <span class="text-xs font-extrabold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
                                 <?php echo count($applicantsList); ?> Applicant<?php echo count($applicantsList) === 1 ? '' : 's'; ?>
                             </span>
+                            <?php if (!empty($applicantsList)): ?>
+                                <button type="button" 
+                                        onclick="triggerAiComparison(<?php echo $job['job_id']; ?>)"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm shadow-indigo-600/20">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    <span>Compare with AI</span>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -456,6 +464,156 @@
                 });
             }
         });
+    </script>
+
+    <!-- AI Candidate Tie-Breaker & Comparison Modal -->
+    <div id="ai-tiebreaker-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center text-indigo-400 font-bold text-lg">
+                        ⚡
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-white">AI Candidate Tie-Breaker & Comparison</h3>
+                        <p class="text-xs text-slate-400">Side-by-side strengths, growth areas, and tailored interview questions</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAiModal()" class="text-slate-400 hover:text-white text-xl font-bold p-1 rounded-lg hover:bg-slate-800 transition-colors">✕</button>
+            </div>
+
+            <!-- Modal Body / Cards Container -->
+            <div id="ai-modal-body" class="p-6 overflow-y-auto flex-1 bg-slate-50">
+                <!-- Loading or rendered cards -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-3 bg-white border-t border-slate-200 flex justify-end shrink-0">
+                <button type="button" onclick="closeAiModal()" class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors">
+                    Close Comparison
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function triggerAiComparison(jobId) {
+            const modal = document.getElementById('ai-tiebreaker-modal');
+            const modalBody = document.getElementById('ai-modal-body');
+
+            modal.classList.remove('hidden');
+            modalBody.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16">
+                    <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p class="text-sm font-bold text-slate-800">Analyzing applicants with AI Matching Engine...</p>
+                    <p class="text-xs text-slate-400 mt-1">Generating strengths, growth areas, and tailored interview questions</p>
+                </div>
+            `;
+
+            const formData = new FormData();
+            formData.append('job_id', jobId);
+            formData.append('csrf_token', '<?php echo CSRF::generateToken(); ?>');
+
+            fetch('/sikaphub/employer/compare-candidates', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status !== 'success' || !data.feedback || data.feedback.length === 0) {
+                    modalBody.innerHTML = `<div class="p-6 bg-red-50 text-red-600 rounded-xl font-bold text-sm text-center">${data.message || 'No candidate feedbacks generated yet for this job.'}</div>`;
+                    return;
+                }
+                renderComparisonCards(data.feedback);
+            })
+            .catch(err => {
+                console.error(err);
+                modalBody.innerHTML = `<div class="p-6 bg-red-50 text-red-600 rounded-xl font-bold text-sm text-center">Failed to connect to comparison service. Please try again.</div>`;
+            });
+        }
+
+        function renderComparisonCards(candidates) {
+            const modalBody = document.getElementById('ai-modal-body');
+            const colsCount = candidates.length;
+            const gridColsClass = colsCount === 1 ? 'grid-cols-1 max-w-xl mx-auto' : (colsCount === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3');
+
+            let html = `<div class="grid ${gridColsClass} gap-6">`;
+
+            candidates.forEach(cand => {
+                const pct = cand.final_score !== null ? Math.round(cand.final_score * 100) : 0;
+
+                let strengthsList = cand.strengths.map(s => `<li class="flex items-start gap-2 text-xs text-slate-700 mb-1.5"><span class="text-emerald-500 font-bold">✓</span> <span>${escapeHtml(s)}</span></li>`).join('');
+                let growthList = cand.growth_areas.map(g => `<li class="flex items-start gap-2 text-xs text-slate-700 mb-1.5"><span class="text-amber-500 font-bold">!</span> <span>${escapeHtml(g)}</span></li>`).join('');
+                let questionsList = cand.interview_questions.map(q => `<li class="flex items-start gap-2 text-xs text-slate-700 mb-1.5"><span class="text-indigo-500 font-bold">?</span> <span>${escapeHtml(q)}</span></li>`).join('');
+
+                html += `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <!-- Candidate Header -->
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                                <div>
+                                    <h4 class="font-extrabold text-slate-900 text-base leading-snug">${escapeHtml(cand.candidate_name)}</h4>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Candidate #${cand.jobseeker_id}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 font-extrabold text-xs rounded-full border border-indigo-100">
+                                        ${pct}% Fit
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Strengths Section -->
+                            <div class="mb-4">
+                                <h5 class="text-xs font-extrabold uppercase tracking-wider text-emerald-700 mb-2 flex items-center gap-1">
+                                    <span>✨ Candidate Strengths</span>
+                                </h5>
+                                <ul class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/60">
+                                    ${strengthsList}
+                                </ul>
+                            </div>
+
+                            <!-- Growth Areas Section -->
+                            <div class="mb-4">
+                                <h5 class="text-xs font-extrabold uppercase tracking-wider text-amber-700 mb-2 flex items-center gap-1">
+                                    <span>🎯 Growth / Probe Areas</span>
+                                </h5>
+                                <ul class="bg-amber-50/50 p-3 rounded-xl border border-amber-100/60">
+                                    ${growthList}
+                                </ul>
+                            </div>
+
+                            <!-- Tailored Interview Questions -->
+                            <div class="mb-4">
+                                <h5 class="text-xs font-extrabold uppercase tracking-wider text-indigo-700 mb-2 flex items-center gap-1">
+                                    <span>❓ Tailored Interview Questions</span>
+                                </h5>
+                                <ul class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/60">
+                                    ${questionsList}
+                                </ul>
+                            </div>
+                        </div>
+
+                        ${cand.cached ? '<span class="text-[10px] font-bold text-slate-400 self-end mt-2">⚡ Loaded from DB cache</span>' : ''}
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            modalBody.innerHTML = html;
+        }
+
+        function closeAiModal() {
+            document.getElementById('ai-tiebreaker-modal').classList.add('hidden');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
     </script>
 
 </body>

@@ -670,9 +670,27 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
 
                     <!-- STEP 2 – EXPERIENCE & EDUCATION -->
                     <div id="step-2" class="hidden step-panel">
-                        <div class="flex items-center gap-3 mb-6">
+                        <div class="flex items-center gap-3 mb-4">
                             <div class="w-7 h-7 rounded-md bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-xs">2</div>
                             <div><h3 class="text-base font-bold text-slate-900">Work Experience &amp; Education</h3></div>
+                        </div>
+
+                        <!-- AI Data Verification Notice Banner -->
+                        <div class="mb-6 bg-amber-50/90 border border-amber-200 rounded-2xl p-4 sm:p-5 shadow-xs">
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-base flex-shrink-0 shadow-xs mt-0.5">
+                                    ⚠️
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-xs sm:text-sm font-extrabold text-amber-950 flex items-center gap-2">
+                                        Double-Check Your Information
+                                        <span class="bg-amber-200/80 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">AI Auto-Fill Notice</span>
+                                    </h4>
+                                    <p class="text-xs text-amber-900/90 mt-1 leading-relaxed">
+                                        Because AI parsers can occasionally misinterpret dates or formatting, please carefully double-check your work experience and education records below before proceeding. You can edit any details directly.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-6">
@@ -866,6 +884,65 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                     </div>
                 </form>
 
+                <!-- AI Review Confirmation Modal -->
+                <div id="ai-review-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden animate-fade-in">
+                    <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 border border-slate-100 max-h-[90vh] flex flex-col">
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold">
+                                    📋
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-extrabold text-slate-900">Review Auto-Filled Details</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Verify your information before proceeding to Step 3</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="closeAiReviewModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div class="py-5 overflow-y-auto space-y-6 flex-1 pr-1 custom-scrollbar">
+                            <!-- Alert message inside modal -->
+                            <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-3.5 text-xs text-blue-900 flex items-start gap-2.5">
+                                <span class="text-base">💡</span>
+                                <div>
+                                    <strong>AI Check:</strong> If you spot any mistakes in job titles, dates, degree levels, or school names, click <strong>Cancel / Edit Information</strong> to correct them directly in Step 2.
+                                </div>
+                            </div>
+
+                            <!-- Work Experience Review Box -->
+                            <div>
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
+                                    <span>💼</span> Work Experience History
+                                </h4>
+                                <div id="modal-exp-list" class="space-y-2">
+                                    <!-- Populated dynamically by JS -->
+                                </div>
+                            </div>
+
+                            <!-- Education Review Box -->
+                            <div>
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
+                                    <span>🎓</span> Education Background
+                                </h4>
+                                <div id="modal-edu-list" class="space-y-2">
+                                    <!-- Populated dynamically by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
+                            <button type="button" onclick="closeAiReviewModal()" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                                ✏️ Cancel / Edit Information
+                            </button>
+                            <button type="button" id="btn-modal-confirm-proceed" class="w-full sm:flex-1 py-3 px-6 rounded-xl bg-primary hover:bg-primary-hover text-white font-extrabold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2">
+                                ✅ Confirm &amp; Proceed to Step 3 &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -980,6 +1057,156 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
             if (connectors['2-3']) connectors['2-3'].classList.toggle('active', targetStep > 2);
         }
 
+        window.aiDetailsConfirmed = false;
+        let onConfirmCallback = null;
+
+        window.openAiReviewModal = function (callback) {
+            onConfirmCallback = callback;
+            
+            // Populate Work Experience summary
+            const expList = document.getElementById('modal-exp-list');
+            const expToggle = document.getElementById('experience-toggle');
+            const expContainer = document.getElementById('experience-container');
+            let expHTML = '';
+
+            if (expContainer && expToggle && expToggle.checked) {
+                const rows = expContainer.querySelectorAll('.experience-row');
+                let count = 0;
+                rows.forEach(function (row, idx) {
+                    const title = (row.querySelector('input[name*="[job_title]"]')?.value || '').trim();
+                    const comp = (row.querySelector('input[name*="[company]"]')?.value || '').trim();
+                    const start = (row.querySelector('input[name*="[start_date]"]')?.value || '').trim();
+                    const end = (row.querySelector('input[name*="[end_date]"]')?.value || '').trim();
+                    
+                    if (title || comp) {
+                        count++;
+                        expHTML += '<div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs flex items-center justify-between gap-3 group transition-all hover:border-rose-200 hover:bg-rose-50/30" id="modal-exp-card-' + idx + '">' +
+                            '<div class="flex-1 min-w-0">' +
+                                '<div class="font-bold text-slate-900 truncate">' + (title || 'Job Title Not Specified') + '</div>' +
+                                '<div class="text-slate-600 font-medium truncate">' + (comp || 'Company Not Specified') + '</div>' +
+                                ((start || end) ? '<div class="text-[10px] text-slate-400 mt-1 font-semibold">' + (start || 'N/A') + ' — ' + (end || 'Present') + '</div>' : '') +
+                            '</div>' +
+                            '<button type="button" onclick="removeModalExpRow(' + idx + ')" class="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-[11px] flex items-center gap-1 transition-colors flex-shrink-0" title="Remove this entry">' +
+                                '🗑️ <span class="hidden sm:inline">Remove</span>' +
+                            '</button>' +
+                        '</div>';
+                    }
+                });
+                if (count === 0) {
+                    expHTML = '<div class="text-xs italic text-slate-400 bg-slate-50 p-3 rounded-xl">No work experience entries entered.</div>';
+                }
+            } else {
+                expHTML = '<div class="text-xs italic text-slate-400 bg-slate-50 p-3 rounded-xl">Fresh Graduate / No prior work experience declared.</div>';
+            }
+            if (expList) expList.innerHTML = expHTML;
+
+            // Populate Education summary
+            const eduList = document.getElementById('modal-edu-list');
+            const eduContainer = document.getElementById('education-container');
+            let eduHTML = '';
+
+            if (eduContainer) {
+                const rows = eduContainer.querySelectorAll('.education-row');
+                let count = 0;
+                rows.forEach(function (row, idx) {
+                    const degSel = row.querySelector('select[name*="[degree_level]"]') || row.querySelector('select.ts-degree');
+                    const instInp = row.querySelector('input[name*="[institution]"]') || row.querySelector('input.ts-school');
+                    const yearInp = row.querySelector('input[name*="[year_graduated]"]');
+                    
+                    const level = degSel ? degSel.value : '';
+                    const school = instInp ? instInp.value.trim() : '';
+                    const year = yearInp ? yearInp.value.trim() : '';
+
+                    if (school || level || year) {
+                        count++;
+                        eduHTML += '<div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs flex items-center justify-between gap-3 group transition-all hover:border-rose-200 hover:bg-rose-50/30" id="modal-edu-card-' + idx + '">' +
+                            '<div class="flex-1 min-w-0">' +
+                                '<span class="inline-block px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-800 tracking-wider mb-1">' + (level || 'Degree Level Unselected') + '</span>' +
+                                '<div class="font-bold text-slate-900 truncate">' + (school || 'School/Institution Not Specified') + '</div>' +
+                                (year ? '<div class="text-[10px] text-slate-500 mt-0.5 font-semibold">Year Graduated: ' + year + '</div>' : '') +
+                            '</div>' +
+                            '<button type="button" onclick="removeModalEduRow(' + idx + ')" class="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-[11px] flex items-center gap-1 transition-colors flex-shrink-0" title="Remove this record">' +
+                                '🗑️ <span class="hidden sm:inline">Remove</span>' +
+                            '</button>' +
+                        '</div>';
+                    }
+                });
+                if (count === 0) {
+                    eduHTML = '<div class="text-xs italic text-slate-400 bg-slate-50 p-3 rounded-xl">No education background entries entered.</div>';
+                }
+            }
+            if (eduList) eduList.innerHTML = eduHTML;
+
+            const modal = document.getElementById('ai-review-modal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.removeModalExpRow = function(index) {
+            const expContainer = document.getElementById('experience-container');
+            if (expContainer) {
+                const rows = expContainer.querySelectorAll('.experience-row');
+                if (rows[index]) {
+                    if (rows.length === 1) {
+                        rows[index].querySelectorAll('input').forEach(inp => inp.value = '');
+                    } else {
+                        rows[index].remove();
+                    }
+                }
+            }
+            const card = document.getElementById('modal-exp-card-' + index);
+            if (card) {
+                card.remove();
+            }
+            const expList = document.getElementById('modal-exp-list');
+            if (expList && expList.children.length === 0) {
+                expList.innerHTML = '<div class="text-xs italic text-slate-400 bg-slate-50 p-3 rounded-xl">Fresh Graduate / No prior work experience declared.</div>';
+            }
+        };
+
+        window.removeModalEduRow = function(index) {
+            const eduContainer = document.getElementById('education-container');
+            if (eduContainer) {
+                const rows = eduContainer.querySelectorAll('.education-row');
+                if (rows[index]) {
+                    if (rows.length === 1) {
+                        rows[index].querySelectorAll('input').forEach(inp => inp.value = '');
+                        rows[index].querySelectorAll('select').forEach(sel => sel.selectedIndex = 0);
+                    } else {
+                        rows[index].remove();
+                    }
+                }
+            }
+            const card = document.getElementById('modal-edu-card-' + index);
+            if (card) {
+                card.remove();
+            }
+            const eduList = document.getElementById('modal-edu-list');
+            if (eduList && eduList.children.length === 0) {
+                eduList.innerHTML = '<div class="text-xs italic text-slate-400 bg-slate-50 p-3 rounded-xl">No education background entries entered.</div>';
+            }
+        };
+
+        window.closeAiReviewModal = function () {
+            const modal = document.getElementById('ai-review-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        document.getElementById('btn-modal-confirm-proceed')?.addEventListener('click', function() {
+            closeAiReviewModal();
+            window.aiDetailsConfirmed = true;
+            if (typeof onConfirmCallback === 'function') {
+                onConfirmCallback();
+            }
+        });
+
+        function reallyGoToStep(targetStep) {
+            if (panels[currentStep]) panels[currentStep].classList.add('hidden');
+            if (panels[targetStep]) panels[targetStep].classList.remove('hidden');
+            currentStep = targetStep;
+            updateProgressBar(currentStep);
+            document.getElementById('progress-bar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
         window.goToStep = function (targetStep) {
             if (targetStep < 1 || targetStep > TOTAL_STEPS) return;
             if (currentStep === 1 && targetStep > 1) {
@@ -994,11 +1221,15 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                 });
                 if (!valid) return;
             }
-            if (panels[currentStep]) panels[currentStep].classList.add('hidden');
-            if (panels[targetStep]) panels[targetStep].classList.remove('hidden');
-            currentStep = targetStep;
-            updateProgressBar(currentStep);
-            document.getElementById('progress-bar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            if (currentStep === 2 && targetStep > 2 && !window.aiDetailsConfirmed) {
+                openAiReviewModal(function () {
+                    reallyGoToStep(targetStep);
+                });
+                return;
+            }
+
+            reallyGoToStep(targetStep);
         };
 
         ['first_name', 'last_name'].forEach(function (id) {
@@ -1209,6 +1440,40 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
 
                     var p = data.profile;
                     var filledFields = [];
+                    window.aiDetailsConfirmed = false;
+
+                    // Clear any previously saved draft in LocalStorage so old data doesn't persist
+                    var userId = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+                    var role = <?php echo json_encode($_SESSION['role'] ?? 'jobseeker'); ?>;
+                    var DRAFT_KEY = 'sikaphub_seeker_draft_' + (userId || 'guest') + '_' + role;
+                    localStorage.removeItem(DRAFT_KEY);
+
+                    // 1. Clear existing skills in TomSelect
+                    if (window.skillsTomSelectInstance) {
+                        window.skillsTomSelectInstance.clear();
+                    }
+
+                    // 2. Clear existing Work Experience rows & inputs completely
+                    var expContainer = document.getElementById('experience-container');
+                    var expToggle = document.getElementById('experience-toggle');
+                    if (expContainer) {
+                        var existingExpRows = expContainer.querySelectorAll('.experience-row');
+                        for (var er = 1; er < existingExpRows.length; er++) { existingExpRows[er].remove(); }
+                        if (existingExpRows[0]) {
+                            existingExpRows[0].querySelectorAll('input').forEach(function(inp) { inp.value = ''; });
+                        }
+                    }
+
+                    // 3. Clear existing Education rows & inputs completely
+                    var eduContainer = document.getElementById('education-container');
+                    if (eduContainer) {
+                        var existingEduRows = eduContainer.querySelectorAll('.education-row');
+                        for (var ed = 1; ed < existingEduRows.length; ed++) { existingEduRows[ed].remove(); }
+                        if (existingEduRows[0]) {
+                            existingEduRows[0].querySelectorAll('input').forEach(function(inp) { inp.value = ''; });
+                            existingEduRows[0].querySelectorAll('select').forEach(function(sel) { sel.selectedIndex = 0; });
+                        }
+                    }
 
                     if (p.name && p.name !== 'Candidate Name Not Found') {
                         var cleanName = p.name.replace(/,/g, '').trim();
@@ -1229,15 +1494,17 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                     }
 
                     if (p.experience && p.experience.length > 0) {
-                        var expContainer = document.getElementById('experience-container');
-                        var expToggle = document.getElementById('experience-toggle');
                         var validExpList = [];
                         var seenExpKeys = {};
 
                         p.experience.forEach(function (exp) {
                             var title = (exp.title || '').trim();
-                            var company = (exp.company_or_details || exp.company || '').trim();
+                            var company = (exp.company_or_details || exp.company || exp.details || '').trim();
+                            if (!title && company) { title = company; company = ''; }
+                            if (title.startsWith('•') || title.startsWith('-')) title = title.replace(/^[•\-\*]\s*/, '').trim();
+                            if (company.startsWith('•') || company.startsWith('-')) company = company.replace(/^[•\-\*]\s*/, '').trim();
                             if (!title && !company) return;
+
                             var expKey = (title.toLowerCase() + '|' + company.toLowerCase());
                             if (!seenExpKeys[expKey]) {
                                 seenExpKeys[expKey] = true;
@@ -1246,10 +1513,11 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                         });
 
                         if (validExpList.length > 0) {
-                            if (expToggle && !expToggle.checked) expToggle.click();
+                            if (expToggle) {
+                                expToggle.checked = true;
+                            }
                             if (expContainer) {
-                                var existingExpRows = expContainer.querySelectorAll('.experience-row');
-                                for (var er = 1; er < existingExpRows.length; er++) { existingExpRows[er].remove(); }
+                                expContainer.classList.remove('hidden');
                                 validExpList.forEach(function (expItem, idx) {
                                     var rows = expContainer.querySelectorAll('.experience-row');
                                     var row = rows[idx];
@@ -1272,31 +1540,35 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                     }
 
                     if (p.education && p.education.length > 0) {
-                        var eduContainer = document.getElementById('education-container');
                         if (eduContainer) {
                             var validEduList = [];
                             var seenEduKeys = {};
 
                             p.education.forEach(function (edu) {
                                 var rawSchool = (edu.institution || edu.school_name || '').trim();
-                                if (rawSchool.startsWith('•') || rawSchool.startsWith('-')) rawSchool = '';
-                                var dText = ((edu.degree_level || '') + ' ' + (edu.degree_or_level || '') + ' ' + rawSchool).toLowerCase();
+                                if (rawSchool.startsWith('•') || rawSchool.startsWith('-')) rawSchool = rawSchool.replace(/^[•\-\*]\s*/, '').trim();
+                                var rawDegree = (edu.degree_or_level || edu.degree_level || '').trim();
+                                if (rawDegree.startsWith('•') || rawDegree.startsWith('-')) rawDegree = rawDegree.replace(/^[•\-\*]\s*/, '').trim();
+
+                                var dText = (rawDegree + ' ' + rawSchool).toLowerCase();
                                 var level = "";
                                 if (dText.includes('master')) level = "Master's Degree";
                                 else if (dText.includes('doctor') || dText.includes('phd')) level = "Doctorate";
-                                else if (dText.includes('high school') || dText.includes('highschool') || dText.includes('secondary') || dText.includes('shs')) level = "High School";
+                                else if (dText.includes('high school') || dText.includes('highschool') || dText.includes('secondary') || dText.includes('shs') || dText.includes('jhs')) level = "High School";
                                 else if (dText.includes('elementary') || dText.includes('primary')) level = "Elementary";
                                 else if (dText.includes('tesda') || dText.includes('vocational')) level = "Vocational / TESDA";
-                                else if (dText.includes('bachelor') || dText.includes('college') || dText.includes('university') || dText.includes('degree') || dText.includes('information technology') || dText.includes('computer science')) level = "Bachelor's Degree";
+                                else if (dText.includes('bachelor') || dText.includes('college') || dText.includes('university') || dText.includes('degree') || dText.includes('bs') || dText.includes('ba') || dText.includes('it') || dText.includes('cs')) level = "Bachelor's Degree";
+                                else if (rawSchool || rawDegree) level = "Bachelor's Degree";
 
                                 var yearMatch = String(edu.year || edu.year_graduated || '').match(/\b(19\d{2}|20\d{2})\b/);
                                 var year = yearMatch ? yearMatch[0] : '';
-                                if (!rawSchool && !level && !year) return;
+                                var schoolName = rawSchool || rawDegree;
+                                if (!schoolName && !year) return;
 
-                                var dedupKey = (rawSchool.toLowerCase() + '|' + level.toLowerCase() + '|' + year);
+                                var dedupKey = (schoolName.toLowerCase() + '|' + level.toLowerCase() + '|' + year);
                                 if (!seenEduKeys[dedupKey]) {
                                     seenEduKeys[dedupKey] = true;
-                                    validEduList.push({ school: rawSchool, level: level, year: year });
+                                    validEduList.push({ school: schoolName, level: level, year: year });
                                 }
                             });
 
@@ -1324,19 +1596,32 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                         }
                     }
 
-                    if (p.skills && p.skills.all_skills && p.skills.all_skills.length > 0 && window.skillsTomSelectInstance) {
-                        p.skills.all_skills.forEach(function (sk) {
+                    var allSkillsDetected = [];
+                    if (p.skills) {
+                        if (Array.isArray(p.skills.all_skills)) {
+                            allSkillsDetected = p.skills.all_skills;
+                        } else if (Array.isArray(p.skills)) {
+                            allSkillsDetected = p.skills.map(function(s) { return typeof s === 'string' ? s : s.skill_name; });
+                        }
+                    }
+
+                    if (allSkillsDetected.length > 0 && window.skillsTomSelectInstance) {
+                        window.skillsTomSelectInstance.clear();
+                        allSkillsDetected.forEach(function (sk) {
+                            if (!sk) return;
+                            var skStr = String(sk).trim();
+                            if (!skStr) return;
                             var match = (window.APPROVED_SKILLS || []).find(function (opt) {
-                                return opt.text.toLowerCase() === sk.toLowerCase();
+                                return opt.text.toLowerCase() === skStr.toLowerCase();
                             });
                             if (match) {
                                 window.skillsTomSelectInstance.addItem(match.value);
                             } else {
-                                window.skillsTomSelectInstance.addOption({ value: sk, text: sk });
-                                window.skillsTomSelectInstance.addItem(sk);
+                                window.skillsTomSelectInstance.addOption({ value: skStr, text: skStr });
+                                window.skillsTomSelectInstance.addItem(skStr);
                             }
                         });
-                        filledFields.push('Skills (' + p.skills.all_skills.length + ' detected)');
+                        filledFields.push('Skills (' + allSkillsDetected.length + ' detected)');
                     }
 
                     if (p.location && p.location.address && munSelect) {
@@ -1366,7 +1651,7 @@ $justSaved = isset($_GET['saved']) || isset($_GET['profile_updated']);
                     }
 
                     statusBox.className = 'mt-4 pt-4 border-t border-emerald-200 text-xs font-bold text-emerald-700 block';
-                    statusBox.innerHTML = '✅ <strong>Resume read successfully!</strong> Auto-filled: ' + filledFields.join(', ') + '. Review details below.';
+                    statusBox.innerHTML = '✅ <strong>Resume read successfully!</strong> Profile cleared &amp; auto-filled: ' + filledFields.join(', ') + '. Review details below.';
                 })
                 .catch(function (err) {
                     if (uploadBtnText) uploadBtnText.textContent = 'Upload CV / Resume';

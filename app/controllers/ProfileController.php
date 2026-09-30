@@ -291,6 +291,77 @@ class ProfileController extends Controller
             }
         }
 
+        // 6b. If a new resume file was uploaded and parsed, fallback to newly parsed CV attributes
+        //     for missing/empty form fields so the profile is updated with ONLY the new CV info.
+        if (!empty($parsedPayload)) {
+            if (empty($firstName) && empty($lastName) && !empty($parsedPayload['name']) && $parsedPayload['name'] !== 'Candidate Name Not Found') {
+                $cleanName = trim(str_replace(',', '', $parsedPayload['name']));
+                $nameParts = preg_split('/\s+/', $cleanName);
+                if (count($nameParts) > 1) {
+                    $lastName = htmlspecialchars(array_pop($nameParts));
+                    $firstName = htmlspecialchars(implode(' ', $nameParts));
+                } elseif (count($nameParts) === 1) {
+                    $firstName = htmlspecialchars($nameParts[0]);
+                }
+            }
+
+            if (empty($educationData) && !empty($parsedPayload['education']) && is_array($parsedPayload['education'])) {
+                foreach ($parsedPayload['education'] as $edu) {
+                    $school = trim($edu['institution'] ?? ($edu['school_name'] ?? ''));
+                    if (str_starts_with($school, '•') || str_starts_with($school, '-')) {
+                        $school = '';
+                    }
+                    if (empty($school)) continue;
+                    $deg = trim(($edu['degree_level'] ?? '') . ' ' . ($edu['degree_or_level'] ?? ''));
+                    $yrMatch = [];
+                    preg_match('/\b(19\d{2}|20\d{2})\b/', (string)($edu['year'] ?? ($edu['year_graduated'] ?? '')), $yrMatch);
+                    $educationData[] = [
+                        'degree_level' => htmlspecialchars($deg),
+                        'school_name' => htmlspecialchars($school),
+                        'year_graduated' => $yrMatch[0] ?? '',
+                    ];
+                }
+            }
+
+            if (empty($experienceData) && !empty($parsedPayload['experience']) && is_array($parsedPayload['experience'])) {
+                foreach ($parsedPayload['experience'] as $exp) {
+                    $title = trim($exp['title'] ?? '');
+                    $comp = trim($exp['company_or_details'] ?? ($exp['company'] ?? ''));
+                    if (empty($title) && empty($comp)) continue;
+                    $experienceData[] = [
+                        'job_title' => htmlspecialchars($title),
+                        'company_name' => htmlspecialchars($comp),
+                        'start_date' => '',
+                        'end_date' => '',
+                        'job_description' => '',
+                    ];
+                }
+                if (!empty($experienceData)) {
+                    $noExperienceDeclared = false;
+                }
+            }
+
+            if (empty($standardSkillIds) && empty($customSkills) && !empty($parsedPayload['skills']['all_skills']) && is_array($parsedPayload['skills']['all_skills'])) {
+                $approvedSkills = $profileModel->getAllApprovedSkills();
+                $approvedMap = [];
+                foreach ($approvedSkills as $as) {
+                    $approvedMap[strtolower(trim($as['skill_name']))] = (int) $as['skill_id'];
+                }
+                foreach ($parsedPayload['skills']['all_skills'] as $skName) {
+                    $skNameTrim = trim($skName);
+                    if ($skNameTrim === '') continue;
+                    $lowerSk = strtolower($skNameTrim);
+                    if (isset($approvedMap[$lowerSk])) {
+                        $standardSkillIds[] = $approvedMap[$lowerSk];
+                    } else {
+                        $customSkills[] = htmlspecialchars($skNameTrim);
+                    }
+                }
+                $standardSkillIds = array_values(array_unique($standardSkillIds));
+                $customSkills = array_values(array_unique($customSkills));
+            }
+        }
+
         // 7. Payload for the model
         $payload = [
             'user_id' => $userId,

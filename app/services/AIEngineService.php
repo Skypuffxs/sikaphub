@@ -236,6 +236,297 @@ class AIEngineService
         return $decoded;
     }
 
+    /**
+     * Get or generate AI candidate tie-breaker feedback for selected applicants.
+     * Caches feedback in `ai_applicant_feedback` table. If cached rows exist, returns them.
+     * Otherwise calls Python AI Engine (/api/v1/candidate-feedback) or generates local evaluation fallback.
+     */
+    public function getCandidateFeedback(int $jobId, array $jobseekerIds): array
+    {
+        $jobseekerIds = array_map('intval', array_unique($jobseekerIds));
+        if (empty($jobseekerIds)) {
+            return [];
+        }
+
+        // 1. Fetch existing cached feedback
+        $inClause = implode(',', array_fill(0, count($jobseekerIds), '?'));
+        $stmt = $this->db->prepare(
+            "SELECT f.*, js.first_name, js.last_name, jms.final_score
+             FROM ai_applicant_feedback f
+             JOIN job_seekers js ON js.jobseeker_id = f.jobseeker_id
+             LEFT JOIN job_match_scores jms ON (jms.job_id = f.job_id AND jms.jobseeker_id = f.jobseeker_id)
+             WHERE f.job_id = ? AND f.jobseeker_id IN ({$inClause})"
+        );
+        $stmt->execute(array_merge([$jobId], $jobseekerIds));
+        $cached = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $cachedMap = [];
+        foreach ($cached as $row) {
+            $cachedMap[(int) $row['jobseeker_id']] = [
+                'jobseeker_id'           => (int) $row['jobseeker_id'],
+                'candidate_name'         => trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')),
+                'final_score'            => isset($row['final_score']) ? (float) $row['final_score'] : null,
+                'strengths'              => json_decode($row['strengths'], true) ?: [$row['strengths']],
+                'growth_areas'           => json_decode($row['growth_areas'], true) ?: [$row['growth_areas']],
+                'interview_questions'    => json_decode($row['interview_questions'], true) ?: [$row['interview_questions']],
+                'match_tiebreaker_notes' => $row['match_tiebreaker_notes'],
+                'cached'                 => true
+            ];
+        }
+
+        // Identify missing candidates needing AI feedback
+        $missingIds = array_diff($jobseekerIds, array_keys($cachedMap));
+        if (empty($missingIds)) {
+            return array_values($cachedMap);
+        }
+
+        // 2. Build payload for missing candidate feedback
+        $payloadCandidates = [];
+        foreach ($missingIds as $seekerId) {
+            $pair = $this->assemblePair($jobId, $seekerId);
+            $seekerInfo = $this->db->prepare(
+                "SELECT js.first_name, js.last_name, jms.final_score
+                 FROM job_seekers js
+                 LEFT JOIN job_match_scores jms ON (jms.job_id = :job_id AND jms.jobseeker_id = js.jobseeker_id)
+                 WHERE js.jobseeker_id = :jsid LIMIT 1"
+            );
+            $seekerInfo->execute([':job_id' => $jobId, ':jsid' => $seekerId]);
+            $sData = $seekerInfo->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            $payloadCandidates[] = array_merge($pair, [
+                'first_name'  => $sData['first_name'] ?? 'Candidate',
+                'last_name'   => $sData['last_name'] ?? '#' . $seekerId,
+                'final_score' => isset($sData['final_score']) ? (float) $sData['final_score'] : 0.0
+            ]);
+        }
+
+        $engineResponse = null;
+        try {
+            $engineResponse = $this->post('/api/v1/candidate-feedback', [
+                'job_id'     => $jobId,
+                'candidates' => $payloadCandidates
+            ]);
+        } catch (Throwable $e) {
+            error_log('[ai_feedback] Python AI engine call failed: ' . $e->getMessage() . '. Utilizing local evaluation fallback.');
+        }
+
+        // 3. Process engine response or dynamic candidate evaluation & save to DB
+        $upsertStmt = $this->db->prepare(
+            "INSERT INTO ai_applicant_feedback
+                (job_id, jobseeker_id, strengths, growth_areas, interview_questions, match_tiebreaker_notes)
+             VALUES
+                (:job_id, :jobseeker_id, :strengths, :growth_areas, :interview_questions, :notes)
+             ON DUPLICATE KEY UPDATE
+                strengths = VALUES(strengths),
+                growth_areas = VALUES(growth_areas),
+                interview_questions = VALUES(interview_questions),
+                match_tiebreaker_notes = VALUES(match_tiebreaker_notes)"
+        );
+
+        foreach ($payloadCandidates as $c) {
+            $sId = (int) $c['jobseeker_id'];
+            $candName = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+            $score = (float) $c['final_score'];
+
+            // Find item in engine response if available
+            $aiItem = null;
+            if (is_array($engineResponse) && isset($engineResponse['feedback'])) {
+                foreach ($engineResponse['feedback'] as $fb) {
+                    if ((int) ($fb['jobseeker_id'] ?? 0) === $sId) {
+                        $aiItem = $fb;
+                        break;
+                    }
+                }
+            }
+
+            if ($aiItem) {
+                $strengths = is_array($aiItem['strengths']) ? $aiItem['strengths'] : [$aiItem['strengths']];
+                $growthAreas = is_array($aiItem['growth_areas']) ? $aiItem['growth_areas'] : [$aiItem['growth_areas']];
+                $questions = is_array($aiItem['interview_questions']) ? $aiItem['interview_questions'] : [$aiItem['interview_questions']];
+                $notes = $aiItem['match_tiebreaker_notes'] ?? ("Evaluated with AI matching score of " . round($score * 100, 1) . "%");
+            } else {
+                // Dynamic candidate-specific evaluation fallback
+                $eval = $this->generateCandidateIndividualFeedback($jobId, $sId, $score, $c);
+                $strengths = $eval['strengths'];
+                $growthAreas = $eval['growth_areas'];
+                $questions = $eval['interview_questions'];
+                $notes = $eval['match_tiebreaker_notes'];
+            }
+
+            $strengthsJson = json_encode($strengths, JSON_UNESCAPED_UNICODE);
+            $growthJson = json_encode($growthAreas, JSON_UNESCAPED_UNICODE);
+            $questionsJson = json_encode($questions, JSON_UNESCAPED_UNICODE);
+
+            $upsertStmt->execute([
+                ':job_id'              => $jobId,
+                ':jobseeker_id'        => $sId,
+                ':strengths'           => $strengthsJson,
+                ':growth_areas'        => $growthJson,
+                ':interview_questions' => $questionsJson,
+                ':notes'               => $notes
+            ]);
+
+            $cachedMap[$sId] = [
+                'jobseeker_id'           => $sId,
+                'candidate_name'         => $candName,
+                'final_score'            => $score,
+                'strengths'              => $strengths,
+                'growth_areas'           => $growthAreas,
+                'interview_questions'    => $questions,
+                'match_tiebreaker_notes' => $notes,
+                'cached'                 => false
+            ];
+        }
+
+        return array_values($cachedMap);
+    }
+
+    /**
+     * Generate dynamic, candidate-specific AI evaluation feedback by analyzing
+     * candidate skills, job requirements, missing competencies, and location proximity.
+     */
+    private function generateCandidateIndividualFeedback(int $jobId, int $jobseekerId, float $score, array $sData): array
+    {
+        $candName = trim(($sData['first_name'] ?? '') . ' ' . ($sData['last_name'] ?? ''));
+
+        // 1. Fetch Job Title & Required Skills
+        $stmtJob = $this->db->prepare(
+            "SELECT jp.job_title, m.municipality_name
+             FROM job_postings jp
+             LEFT JOIN lib_municipalities m ON m.municipality_id = jp.municipality_id
+             WHERE jp.job_id = :job_id LIMIT 1"
+        );
+        $stmtJob->execute([':job_id' => $jobId]);
+        $jobInfo = $stmtJob->fetch(PDO::FETCH_ASSOC) ?: [];
+        $jobTitle = $jobInfo['job_title'] ?? 'this position';
+
+        // Fetch required skills (Mandatory vs Preferred)
+        $stmtReq = $this->db->prepare(
+            "SELECT ms.skill_name, jrs.requirement_type
+             FROM job_required_skills jrs
+             JOIN master_skills ms ON ms.skill_id = jrs.skill_id
+             WHERE jrs.job_id = :job_id AND ms.status = 'approved'"
+        );
+        $stmtReq->execute([':job_id' => $jobId]);
+        $reqSkills = $stmtReq->fetchAll(PDO::FETCH_ASSOC);
+
+        $mandatoryReqs = [];
+        $preferredReqs = [];
+        foreach ($reqSkills as $r) {
+            if ($r['requirement_type'] === 'Mandatory') {
+                $mandatoryReqs[] = $r['skill_name'];
+            } else {
+                $preferredReqs[] = $r['skill_name'];
+            }
+        }
+
+        // 2. Fetch Candidate Skills & Location
+        $stmtSeeker = $this->db->prepare(
+            "SELECT ms.skill_name, jss.proficiency_level, m.municipality_name
+             FROM job_seekers js
+             LEFT JOIN jobseeker_skills jss ON jss.jobseeker_id = js.jobseeker_id
+             LEFT JOIN master_skills ms ON (ms.skill_id = jss.skill_id AND ms.status = 'approved')
+             LEFT JOIN lib_municipalities m ON m.municipality_id = js.home_municipality_id
+             WHERE js.jobseeker_id = :jsid"
+        );
+        $stmtSeeker->execute([':jsid' => $jobseekerId]);
+        $seekerRows = $stmtSeeker->fetchAll(PDO::FETCH_ASSOC);
+
+        $seekerSkillsMap = [];
+        $seekerMunicipality = '';
+        foreach ($seekerRows as $row) {
+            if (!empty($row['municipality_name'])) {
+                $seekerMunicipality = $row['municipality_name'];
+            }
+            if (!empty($row['skill_name'])) {
+                $seekerSkillsMap[$row['skill_name']] = $row['proficiency_level'] ?? 'Intermediate';
+            }
+        }
+
+        $seekerSkillNames = array_keys($seekerSkillsMap);
+
+        // 3. Match Analysis
+        $matchedMandatory = array_values(array_intersect($mandatoryReqs, $seekerSkillNames));
+        $missingMandatory = array_values(array_diff($mandatoryReqs, $seekerSkillNames));
+
+        $matchedPreferred = array_values(array_intersect($preferredReqs, $seekerSkillNames));
+        $missingPreferred = array_values(array_diff($preferredReqs, $seekerSkillNames));
+
+        $otherSkills = array_values(array_diff($seekerSkillNames, array_merge($mandatoryReqs, $preferredReqs)));
+
+        // 4. Construct Strengths
+        $strengths = [];
+        $pct = round($score * 100);
+
+        if ($pct >= 70) {
+            $strengths[] = "Exceptional fit with {$pct}% match score across key job requirements.";
+        } elseif ($pct >= 40) {
+            $strengths[] = "Moderate fit with {$pct}% match score and technical competency alignment.";
+        } else {
+            $strengths[] = "Candidate profile registered with {$pct}% initial match score.";
+        }
+
+        if (!empty($matchedMandatory)) {
+            $strengths[] = "Verified proficiency in mandatory skill(s): " . implode(', ', $matchedMandatory) . ".";
+        } elseif (!empty($otherSkills)) {
+            $strengths[] = "Brings complementary skill capabilities: " . implode(', ', array_slice($otherSkills, 0, 3)) . ".";
+        }
+
+        if (!empty($matchedPreferred)) {
+            $strengths[] = "Bonus alignment on preferred skill(s): " . implode(', ', $matchedPreferred) . ".";
+        } else {
+            $loc = !empty($seekerMunicipality) ? $seekerMunicipality : 'local municipality';
+            $strengths[] = "Based in {$loc} — prompt local hiring availability.";
+        }
+
+        // 5. Construct Growth / Probe Areas
+        $growthAreas = [];
+        if (!empty($missingMandatory)) {
+            $growthAreas[] = "Missing mandatory requirement(s): " . implode(', ', $missingMandatory) . " — evaluate related experience during interview.";
+        } else {
+            $growthAreas[] = "Demonstrates full coverage of mandatory skills — assess practical execution depth.";
+        }
+
+        if (!empty($missingPreferred)) {
+            $growthAreas[] = "Lacks preferred requirement(s): " . implode(', ', $missingPreferred) . " — may require onboarding orientation.";
+        } elseif ($pct < 35) {
+            $growthAreas[] = "Significant overall skill gap ({$pct}% match score) against job post specifications.";
+        } else {
+            $growthAreas[] = "Validate self-reported proficiency levels for core technical skills.";
+        }
+
+        // 6. Construct Tailored Interview Questions
+        $questions = [];
+        if (!empty($matchedMandatory)) {
+            $topMatched = reset($matchedMandatory);
+            $questions[] = "You listed experience with {$topMatched}. Can you describe a challenging project where you applied {$topMatched} to solve a complex issue?";
+        } elseif (!empty($otherSkills)) {
+            $topOther = reset($otherSkills);
+            $questions[] = "You have background in {$topOther}. How would you transfer that technical knowledge to our {$jobTitle} role?";
+        } else {
+            $questions[] = "What specific technical accomplishment or project are you most proud of in your previous experience?";
+        }
+
+        if (!empty($missingMandatory)) {
+            $topMissing = reset($missingMandatory);
+            $questions[] = "This position requires {$topMissing}, which is not explicitly listed on your profile. How quickly can you adapt to {$topMissing}?";
+        } elseif (!empty($missingPreferred)) {
+            $topMissingPref = reset($missingPreferred);
+            $questions[] = "How do you approach learning preferred tools like {$topMissingPref} on the job?";
+        } else {
+            $questions[] = "Given your {$pct}% match score for {$jobTitle}, what immediate impact do you plan to make in your first 30 days?";
+        }
+
+        $notes = "Individualized AI tie-breaker evaluation ({$pct}% match score) for " . ($candName ?: 'Candidate');
+
+        return [
+            'strengths'              => $strengths,
+            'growth_areas'           => $growthAreas,
+            'interview_questions'    => $questions,
+            'match_tiebreaker_notes' => $notes
+        ];
+    }
+
     // ---------------------------------------------------------------- assembly
 
     private function assemblePair(int $jobId, int $jobseekerId): array

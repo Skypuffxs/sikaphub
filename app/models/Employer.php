@@ -56,6 +56,7 @@ class Employer
     {
         $sql = "SELECT 
                     a.application_id, 
+                    a.jobseeker_id,
                     a.ai_match_score, 
                     a.application_status, 
                     a.application_date,

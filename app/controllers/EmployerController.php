@@ -280,4 +280,74 @@ class EmployerController extends Controller
             'success'  => $success
         ]);
     }
+
+    /**
+     * POST /employer/compare-candidates
+     * JSON API Endpoint: Compare selected applicants for a job post using AI Tie-Breaker evaluation.
+     */
+    public function compareCandidates()
+    {
+        AuthGuard::requireActiveProfile();
+
+        if ($_SESSION['role'] !== 'employer') {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized access.']);
+            exit();
+        }
+
+        $jobId = (int) ($_POST['job_id'] ?? 0);
+        $candidateIdsRaw = $_POST['jobseeker_ids'] ?? [];
+
+        if (is_string($candidateIdsRaw)) {
+            $candidateIdsRaw = explode(',', $candidateIdsRaw);
+        }
+
+        $candidateIds = array_filter(array_map('intval', (array) $candidateIdsRaw));
+
+        $employerModel = $this->model('Employer');
+        $employerId = $employerModel->getEmployerId($_SESSION['user_id']);
+
+        // Ownership Scope Check: Ensure the job belongs to this employer
+        $jobs = $employerModel->getEmployerJobs($employerId);
+        $ownedJobIds = array_map(fn($j) => (int) $j['job_id'], $jobs);
+
+        if (!in_array($jobId, $ownedJobIds, true)) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'message' => 'Forbidden: You do not own this job posting.']);
+            exit();
+        }
+
+        // If no candidate IDs specified, automatically compare all applicants for this job
+        if (empty($candidateIds)) {
+            $applicants = $employerModel->getRankedApplicantsForJob($jobId, $employerId);
+            $candidateIds = array_filter(array_map(fn($a) => (int) ($a['jobseeker_id'] ?? 0), $applicants));
+        }
+
+        if ($jobId <= 0 || empty($candidateIds)) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'No applicants available to compare for this position.']);
+            exit();
+        }
+
+        try {
+            $aiService = new AIEngineService();
+            $feedback = $aiService->getCandidateFeedback($jobId, $candidateIds);
+
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status'    => 'success',
+                'job_id'    => $jobId,
+                'feedback'  => $feedback
+            ]);
+            exit();
+        } catch (Throwable $e) {
+            error_log('[compareCandidates] Error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'status'  => 'error',
+                'message' => 'Failed to generate AI candidate comparison: ' . $e->getMessage()
+            ]);
+            exit();
+        }
+    }
 }

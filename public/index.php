@@ -69,6 +69,15 @@ $router = new Router();
 $baseUri = str_replace('/public/index.php', '', $_SERVER['SCRIPT_NAME']);
 $requestUri = str_replace($baseUri, '', $_SERVER['REQUEST_URI']);
 
+// Check if accessing via admin subdomain (e.g., admin.localhost or admin.sikaphub.ph)
+$httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
+$isAdminSubdomain = (strpos($httpHost, 'admin.') === 0);
+
+if ($isAdminSubdomain && ($requestUri === '/' || $requestUri === '/login')) {
+    header('Location: /sikaphub/admin/login');
+    exit();
+}
+
 // 7. Define Application Routes
 // Landing Page Route & Legal Pages
 $router->get('/', ['HomeController', 'index']);
@@ -115,9 +124,12 @@ $router->get('/employer/review-candidate', ['EmployerController', 'reviewCandida
 $router->post('/employer/review-candidate', ['EmployerController', 'reviewCandidate']);
 $router->get('/employer/upload-permit',  ['EmployerController', 'uploadPermit']);
 $router->post('/employer/upload-permit', ['EmployerController', 'uploadPermit']);
+$router->post('/employer/compare-candidates', ['EmployerController', 'compareCandidates']);
 
-// Admin Routes
-$router->get('/admin/dashboard',    ['AdminController', 'dashboard']);
+// Admin Routes & Dedicated Admin Authentication
+$router->get('/admin/login',             ['AdminController', 'loginForm']);
+$router->post('/admin/login',            ['AdminController', 'login']);
+$router->get('/admin/dashboard',         ['AdminController', 'dashboard']);
 $router->get('/admin/verifications', ['AdminController', 'verifications']);
 $router->get('/admin/export',       ['AdminController', 'exportPdf']);
 $router->get('/admin/employers',    ['AdminController', 'employers']);

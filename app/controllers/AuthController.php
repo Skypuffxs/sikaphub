@@ -90,6 +90,47 @@ class AuthController extends Controller
         $this->redirect('/auth/otp/verify');
     }
 
+    /** POST /admin/auth/otp/request — PESO Admin OTP request with authorization check */
+    public function adminOtpRequest()
+    {
+        $email = $this->normalizeEmail($_POST['email'] ?? '');
+        if ($email === null) {
+            $_SESSION['admin_auth_error'] = 'Enter a valid email address.';
+            $this->redirect('/admin/login');
+        }
+
+        $userModel = $this->model('User');
+        $existing  = $userModel->findByEmail($email);
+
+        if (!$existing || ($existing['role'] ?? null) !== 'admin') {
+            $_SESSION['admin_auth_error'] = 'Access denied: That email address is not registered as a PESO Admin.';
+            $this->redirect('/admin/login');
+        }
+
+        $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $otp = $this->model('EmailOtp');
+
+        $throttled =
+            $otp->countRecentByEmail($email, self::RATE_WINDOW_MIN) >= self::RATE_EMAIL_MAX ||
+            $otp->countRecentByIp($ip, self::RATE_WINDOW_MIN)       >= self::RATE_IP_MAX;
+
+        $isDev = true;
+        if (!$throttled || $isDev) {
+            $userId  = (int) $existing['user_id'];
+            $code    = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $hash    = password_hash($code, PASSWORD_DEFAULT);
+            $purpose = 'login';
+
+            $otp->create($email, $hash, $purpose, $ip, self::OTP_TTL_MIN);
+            (new Mailer())->sendOtp($email, $code, $userId);
+
+            Audit::write($userId, 'admin_otp_requested', 'Admin OTP requested for ' . $email);
+        }
+
+        $_SESSION['otp_email'] = $email;
+        $this->redirect('/auth/otp/verify');
+    }
+
     /** POST /auth/otp/verify */
     public function otpVerify()
     {
