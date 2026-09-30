@@ -97,6 +97,10 @@ if (empty($requestUri) || $requestUri[0] !== '/') {
     $requestUri = '/' . $requestUri;
 }
 
+// Detect Subdomain Context
+$httpHost = strtolower($_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '');
+$isAdminSubdomain = (strpos($httpHost, 'admin.') === 0 || strpos($httpHost, 'admin.') !== false);
+
 // 7. Define Application Routes
 if ($isAdminSubdomain) {
     // Admin Subdomain Clean & Legacy Routes (admin.sikaphub.com/*)
