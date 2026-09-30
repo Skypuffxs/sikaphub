@@ -81,8 +81,15 @@ class AuthGuard
 
     private static function bounce($path)
     {
+        $httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
+        $isAdminSubdomain = (strpos($httpHost, 'admin.') === 0);
+
+        if ($isAdminSubdomain && ($path === '/login' || strpos($path, '/login?') === 0)) {
+            $path = '/admin/login' . (strpos($path, '?') !== false ? substr($path, strpos($path, '?')) : '');
+        }
+
         $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $basePrefix = (strpos($scriptName, '/') === 0) ? '/sikaphub' : '';
+        $basePrefix = (strpos($scriptName, '/sikaphub/') === 0) ? '/sikaphub' : '';
         header('Location: ' . $basePrefix . $path);
         exit();
     }

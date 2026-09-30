@@ -9,7 +9,7 @@ class AdminController extends Controller
     public function loginForm()
     {
         if (isset($_SESSION['user_id']) && ($_SESSION['role'] ?? null) === 'admin') {
-            $this->redirect('/admin/dashboard');
+            return $this->dashboard();
         }
         $error = $_SESSION['admin_auth_error'] ?? null;
         unset($_SESSION['admin_auth_error']);
@@ -71,7 +71,8 @@ class AdminController extends Controller
 
             Audit::write((int) $admin['user_id'], 'admin_login_success', 'Successful username/password login for ' . $username);
 
-            $this->redirect('/admin/dashboard');
+            // Directly render dashboard upon successful login without external redirect loop
+            return $this->dashboard();
 
         } catch (\Throwable $e) {
             error_log('[AdminController::login] Exception: ' . $e->getMessage());
@@ -79,6 +80,7 @@ class AdminController extends Controller
             $this->redirect('/admin/login');
         }
     }
+
 
     public function dashboard()
     {

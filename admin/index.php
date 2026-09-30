@@ -114,3 +114,4 @@ $router->post('/admin/reanalyze-permit', ['AdminController', 'reanalyzePermit'])
 // Dispatch Request
 $method = $_SERVER['REQUEST_METHOD'];
 $router->dispatch($requestUri, $method);
+

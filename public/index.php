@@ -87,98 +87,110 @@ if (empty($requestUri) || $requestUri[0] !== '/') {
     $requestUri = '/' . $requestUri;
 }
 
-// Check if accessing via admin subdomain (e.g., admin.localhost or admin.sikaphub.com)
-$httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
-$isAdminSubdomain = (strpos($httpHost, 'admin.') === 0);
-
-if ($isAdminSubdomain && ($requestUri === '/' || $requestUri === '/login')) {
-    header('Location: /admin/login');
-    exit();
-}
-
 // 7. Define Application Routes
-// Landing Page Route & Legal Pages
-$router->get('/', ['HomeController', 'index']);
-$router->get('/terms', ['HomeController', 'terms']);
-$router->get('/privacy', ['HomeController', 'privacy']);
-$router->get('/offline', ['HomeController', 'offline']);
+if ($isAdminSubdomain) {
+    // Admin Subdomain Clean & Legacy Routes (admin.sikaphub.com/*)
+    $router->get('/',                  ['AdminController', 'loginForm']);
+    $router->get('/login',             ['AdminController', 'loginForm']);
+    $router->post('/login',            ['AdminController', 'login']);
+    $router->get('/dashboard',         ['AdminController', 'dashboard']);
+    $router->get('/verifications',     ['AdminController', 'verifications']);
+    $router->get('/export',            ['AdminController', 'exportPdf']);
+    $router->get('/employers',         ['AdminController', 'employers']);
+    $router->get('/seekers',           ['AdminController', 'seekers']);
+    $router->get('/jobs',              ['AdminController', 'jobs']);
+    $router->get('/skills',            ['AdminController', 'skills']);
+    $router->get('/audit-logs',        ['AdminController', 'auditLogs']);
+    $router->get('/logout',            ['AdminController', 'logout']);
+    $router->post('/verify-employer',  ['AdminController', 'verifyEmployer']);
+    $router->post('/approve-skill',    ['AdminController', 'approveSkill']);
+    $router->get('/view-document',     ['AdminController', 'viewDocument']);
+    $router->post('/toggle-job-status',['AdminController', 'toggleJobStatus']);
+    $router->post('/add-skill',        ['AdminController', 'addSkill']);
+    $router->post('/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
 
-// Authentication — UC-01 Path B (email OTP). No registration route: the first
-// verified code creates the account.
-$router->get('/login', ['AuthController', 'login']);
-$router->get('/register', ['AuthController', 'login']);
-$router->post('/auth/otp/request', ['AuthController', 'otpRequest']);
-$router->get('/auth/otp/verify', ['AuthController', 'otpVerifyForm']);
-$router->post('/auth/otp/verify', ['AuthController', 'otpVerify']);
-$router->get('/logout', ['AuthController', 'logout']);
+    $router->get('/admin/login',             ['AdminController', 'loginForm']);
+    $router->post('/admin/login',            ['AdminController', 'login']);
+    $router->get('/admin/dashboard',         ['AdminController', 'dashboard']);
+    $router->get('/admin/verifications',     ['AdminController', 'verifications']);
+    $router->get('/admin/export',            ['AdminController', 'exportPdf']);
+    $router->get('/admin/employers',         ['AdminController', 'employers']);
+    $router->get('/admin/seekers',           ['AdminController', 'seekers']);
+    $router->get('/admin/jobs',              ['AdminController', 'jobs']);
+    $router->get('/admin/skills',            ['AdminController', 'skills']);
+    $router->get('/admin/audit-logs',        ['AdminController', 'auditLogs']);
+    $router->get('/admin/logout',            ['AdminController', 'logout']);
+    $router->post('/admin/verify-employer',  ['AdminController', 'verifyEmployer']);
+    $router->post('/admin/approve-skill',    ['AdminController', 'approveSkill']);
+    $router->get('/admin/view-document',     ['AdminController', 'viewDocument']);
+    $router->post('/admin/toggle-job-status',['AdminController', 'toggleJobStatus']);
+    $router->post('/admin/add-skill',        ['AdminController', 'addSkill']);
+    $router->post('/admin/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
+} else {
+    // Landing Page Route & Legal Pages
+    $router->get('/', ['HomeController', 'index']);
+    $router->get('/terms', ['HomeController', 'terms']);
+    $router->get('/privacy', ['HomeController', 'privacy']);
+    $router->get('/offline', ['HomeController', 'offline']);
 
-// Role picker — UC-01a. users.role is NULL until chosen here.
-$router->get('/select-role', ['RoleController', 'select']);
-$router->post('/select-role', ['RoleController', 'select']);
+    // Authentication
+    $router->get('/login', ['AuthController', 'login']);
+    $router->get('/register', ['AuthController', 'login']);
+    $router->post('/auth/otp/request', ['AuthController', 'otpRequest']);
+    $router->get('/auth/otp/verify', ['AuthController', 'otpVerifyForm']);
+    $router->post('/auth/otp/verify', ['AuthController', 'otpVerify']);
+    $router->get('/logout', ['AuthController', 'logout']);
 
-// Profile Routes — /build-profile is the sole profile builder for both roles
-// (C-29). The legacy /onboarding route, controller, model and view are gone.
-$router->get('/build-profile', ['ProfileController', 'buildProfile']);
-$router->post('/build-profile', ['ProfileController', 'buildProfile']);
-$router->get('/profile/barangays', ['ProfileController', 'barangays']);
-$router->post('/profile/parse-resume', ['ProfileController', 'parseResume']);
+    // Role picker
+    $router->get('/select-role', ['RoleController', 'select']);
+    $router->post('/select-role', ['RoleController', 'select']);
 
-// Job Seeker Dashboard & Application Routes
-$router->get('/dashboard', ['JobSeekerController', 'dashboard']);
-$router->get('/my-applications', ['JobSeekerController', 'tracker']);
-$router->get('/saved-jobs', ['JobSeekerController', 'savedJobs']);
-$router->post('/apply', ['JobSeekerController', 'apply']);
-$router->post('/jobseeker/toggle-save-job', ['JobSeekerController', 'toggleSaveJob']);
+    // Profile Routes
+    $router->get('/build-profile', ['ProfileController', 'buildProfile']);
+    $router->post('/build-profile', ['ProfileController', 'buildProfile']);
+    $router->get('/profile/barangays', ['ProfileController', 'barangays']);
+    $router->post('/profile/parse-resume', ['ProfileController', 'parseResume']);
 
-// Job Routes
-$router->get('/job/view', ['JobController', 'show']);
-$router->get('/post-job', ['JobController', 'create']);
-$router->post('/post-job', ['JobController', 'create']);
+    // Job Seeker Dashboard & Application Routes
+    $router->get('/dashboard', ['JobSeekerController', 'dashboard']);
+    $router->get('/my-applications', ['JobSeekerController', 'tracker']);
+    $router->get('/saved-jobs', ['JobSeekerController', 'savedJobs']);
+    $router->post('/apply', ['JobSeekerController', 'apply']);
+    $router->post('/jobseeker/toggle-save-job', ['JobSeekerController', 'toggleSaveJob']);
 
-// Employer ATS Dashboard & Review Routes
-$router->get('/company/view', ['EmployerController', 'showPublicProfile']);
-$router->get('/employer/dashboard', ['EmployerController', 'dashboard']);
-$router->get('/employer/review-candidate', ['EmployerController', 'reviewCandidate']);
-$router->post('/employer/review-candidate', ['EmployerController', 'reviewCandidate']);
-$router->get('/employer/upload-permit',  ['EmployerController', 'uploadPermit']);
-$router->post('/employer/upload-permit', ['EmployerController', 'uploadPermit']);
-$router->post('/employer/compare-candidates', ['EmployerController', 'compareCandidates']);
+    // Job Routes
+    $router->get('/job/view', ['JobController', 'show']);
+    $router->get('/post-job', ['JobController', 'create']);
+    $router->post('/post-job', ['JobController', 'create']);
 
-// Admin Routes & Dedicated Admin Authentication (Supports both main domain and subdomain execution)
-$router->get('/admin/login',             ['AdminController', 'loginForm']);
-$router->post('/admin/login',            ['AdminController', 'login']);
-$router->get('/admin/dashboard',         ['AdminController', 'dashboard']);
-$router->get('/admin/verifications',     ['AdminController', 'verifications']);
-$router->get('/admin/export',            ['AdminController', 'exportPdf']);
-$router->get('/admin/employers',         ['AdminController', 'employers']);
-$router->get('/admin/seekers',           ['AdminController', 'seekers']);
-$router->get('/admin/jobs',              ['AdminController', 'jobs']);
-$router->get('/admin/skills',            ['AdminController', 'skills']);
-$router->get('/admin/audit-logs',        ['AdminController', 'auditLogs']);
-$router->get('/admin/logout',            ['AdminController', 'logout']);
-$router->post('/admin/verify-employer',  ['AdminController', 'verifyEmployer']);
-$router->post('/admin/approve-skill',    ['AdminController', 'approveSkill']);
-$router->get('/admin/view-document',     ['AdminController', 'viewDocument']);
-$router->post('/admin/toggle-job-status', ['AdminController', 'toggleJobStatus']);
-$router->post('/admin/add-skill',        ['AdminController', 'addSkill']);
-$router->post('/admin/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
+    // Employer ATS Dashboard & Review Routes
+    $router->get('/company/view', ['EmployerController', 'showPublicProfile']);
+    $router->get('/employer/dashboard', ['EmployerController', 'dashboard']);
+    $router->get('/employer/review-candidate', ['EmployerController', 'reviewCandidate']);
+    $router->post('/employer/review-candidate', ['EmployerController', 'reviewCandidate']);
+    $router->get('/employer/upload-permit',  ['EmployerController', 'uploadPermit']);
+    $router->post('/employer/upload-permit', ['EmployerController', 'uploadPermit']);
+    $router->post('/employer/compare-candidates', ['EmployerController', 'compareCandidates']);
 
-// Subdomain Clean Routes (admin.sikaphub.com)
-$router->get('/verifications',     ['AdminController', 'verifications']);
-$router->get('/export',            ['AdminController', 'exportPdf']);
-$router->get('/employers',         ['AdminController', 'employers']);
-$router->get('/seekers',           ['AdminController', 'seekers']);
-$router->get('/jobs',              ['AdminController', 'jobs']);
-$router->get('/skills',            ['AdminController', 'skills']);
-$router->get('/audit-logs',        ['AdminController', 'auditLogs']);
-$router->get('/logout',            ['AdminController', 'logout']);
-$router->post('/verify-employer',  ['AdminController', 'verifyEmployer']);
-$router->post('/approve-skill',    ['AdminController', 'approveSkill']);
-$router->get('/view-document',     ['AdminController', 'viewDocument']);
-$router->post('/toggle-job-status', ['AdminController', 'toggleJobStatus']);
-$router->post('/add-skill',        ['AdminController', 'addSkill']);
-$router->post('/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
-
+    // Admin Routes on Main Domain
+    $router->get('/admin/login',             ['AdminController', 'loginForm']);
+    $router->post('/admin/login',            ['AdminController', 'login']);
+    $router->get('/admin/dashboard',         ['AdminController', 'dashboard']);
+    $router->get('/admin/verifications',     ['AdminController', 'verifications']);
+    $router->get('/admin/export',            ['AdminController', 'exportPdf']);
+    $router->get('/admin/employers',         ['AdminController', 'employers']);
+    $router->get('/admin/seekers',           ['AdminController', 'seekers']);
+    $router->get('/admin/jobs',              ['AdminController', 'jobs']);
+    $router->get('/admin/skills',            ['AdminController', 'skills']);
+    $router->get('/admin/audit-logs',        ['AdminController', 'auditLogs']);
+    $router->get('/admin/logout',            ['AdminController', 'logout']);
+    $router->post('/admin/verify-employer',  ['AdminController', 'verifyEmployer']);
+    $router->post('/admin/approve-skill',    ['AdminController', 'approveSkill']);
+    $router->get('/admin/view-document',     ['AdminController', 'viewDocument']);
+    $router->post('/admin/toggle-job-status',['AdminController', 'toggleJobStatus']);
+    $router->post('/admin/add-skill',        ['AdminController', 'addSkill']);
+    $router->post('/admin/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
+}
 
 // 8. Dispatch the Request
 $method = $_SERVER['REQUEST_METHOD'];

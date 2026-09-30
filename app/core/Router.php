@@ -63,6 +63,15 @@ class Router
             }
         }
 
+        // Subdomain Fallback: If on admin subdomain and method is GET, route to AdminController
+        $httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
+        $isAdminSubdomain = (strpos($httpHost, 'admin.') === 0);
+        if ($isAdminSubdomain && $method === 'GET') {
+            require_once BASE_PATH . 'app/controllers/AdminController.php';
+            $controller = new AdminController();
+            return $controller->loginForm();
+        }
+
         // Standard 404 handling
         http_response_code(404);
         echo "404 - Page Not Found";
