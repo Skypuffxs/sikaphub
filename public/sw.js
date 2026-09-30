@@ -4,19 +4,22 @@
  */
 
 const CACHE_NAME = 'sikaphub-v2';
-const OFFLINE_URL = '/sikaphub/offline';
+const IS_SUBFOLDER = self.location.pathname.startsWith('/sikaphub');
+const BASE_PREFIX = IS_SUBFOLDER ? '/sikaphub' : '';
+
+const OFFLINE_URL = BASE_PREFIX + '/offline';
 
 // Core assets required for offline availability
 const PRECACHE_ASSETS = [
-    '/sikaphub/',
-    '/sikaphub/offline',
-    '/sikaphub/public/assets/css/theme.css',
-    '/sikaphub/public/assets/css/tom-select.css',
-    '/sikaphub/public/assets/js/offline-handler.js',
-    '/sikaphub/public/assets/js/tailwind.js',
-    '/sikaphub/public/assets/js/tom-select.js',
-    '/sikaphub/public/assets/images/logo-icon.png',
-    '/sikaphub/public/manifest.json'
+    BASE_PREFIX + '/',
+    BASE_PREFIX + '/offline',
+    BASE_PREFIX + '/assets/css/theme.css',
+    BASE_PREFIX + '/assets/css/tom-select.css',
+    BASE_PREFIX + '/assets/js/offline-handler.js',
+    BASE_PREFIX + '/assets/js/tailwind.js',
+    BASE_PREFIX + '/assets/js/tom-select.js',
+    BASE_PREFIX + '/assets/images/logo-icon.png',
+    BASE_PREFIX + '/manifest.json'
 ];
 
 

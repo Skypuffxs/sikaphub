@@ -65,16 +65,34 @@ require_once BASE_PATH . 'app/services/AIEngineService.php';
 // 5. Initialize Router
 $router = new Router();
 
-// 6. Define Base URI Path dynamically to handle subdirectory execution
-$baseUri = str_replace('/public/index.php', '', $_SERVER['SCRIPT_NAME']);
-$requestUri = str_replace($baseUri, '', $_SERVER['REQUEST_URI']);
+// 6. Define Base URI Path dynamically to handle both local subdirectory and root deployment (Hostinger)
+$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+$baseUri = str_replace('/public/index.php', '', $scriptName);
+$baseUri = str_replace('/index.php', '', $baseUri);
 
-// Check if accessing via admin subdomain (e.g., admin.localhost or admin.sikaphub.ph)
+$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+
+if (!empty($baseUri) && strpos($requestUri, $baseUri) === 0) {
+    $requestUri = substr($requestUri, strlen($baseUri));
+}
+
+// Strip legacy /sikaphub prefix if present (ensures seamless deployment on root domains like sikaphub.com)
+if (strpos($requestUri, '/sikaphub/') === 0) {
+    $requestUri = substr($requestUri, 9);
+} elseif ($requestUri === '/sikaphub') {
+    $requestUri = '/';
+}
+
+if (empty($requestUri) || $requestUri[0] !== '/') {
+    $requestUri = '/' . $requestUri;
+}
+
+// Check if accessing via admin subdomain (e.g., admin.localhost or admin.sikaphub.com)
 $httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
 $isAdminSubdomain = (strpos($httpHost, 'admin.') === 0);
 
 if ($isAdminSubdomain && ($requestUri === '/' || $requestUri === '/login')) {
-    header('Location: /sikaphub/admin/login');
+    header('Location: /admin/login');
     exit();
 }
 

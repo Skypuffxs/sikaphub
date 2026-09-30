@@ -8,7 +8,11 @@
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
-            navigator.serviceWorker.register('/sikaphub/sw.js', { scope: '/sikaphub/' })
+            var isSubfolder = window.location.pathname.startsWith('/sikaphub');
+            var pathPrefix = isSubfolder ? '/sikaphub/' : '/';
+            var swUrl = isSubfolder ? '/sikaphub/sw.js' : '/sw.js';
+
+            navigator.serviceWorker.register(swUrl, { scope: pathPrefix })
                 .then(function (registration) {
                     console.log('[Offline Engine] ServiceWorker ready for offline browsing.');
                 })

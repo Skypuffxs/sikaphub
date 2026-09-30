@@ -455,7 +455,9 @@ class AdminController extends Controller
 
     private function redirect($path)
     {
-        header('Location: /sikaphub' . $path);
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePrefix = (strpos($scriptName, '/sikaphub/') === 0) ? '/sikaphub' : '';
+        header('Location: ' . $basePrefix . $path);
         exit();
     }
 
