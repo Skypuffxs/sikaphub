@@ -69,13 +69,10 @@ if (empty($requestUri) || $requestUri[0] !== '/') {
     $requestUri = '/' . $requestUri;
 }
 
-// Redirect subdomain root / or /login to Admin login form
-if ($requestUri === '/' || $requestUri === '/login') {
-    $router->get($requestUri, ['AdminController', 'loginForm']);
-}
-
 // Subdomain Clean Routes (admin.sikaphub.com/*)
+$router->get('/',                  ['AdminController', 'loginForm']);
 $router->get('/login',             ['AdminController', 'loginForm']);
+
 $router->post('/login',            ['AdminController', 'login']);
 $router->get('/dashboard',         ['AdminController', 'dashboard']);
 $router->get('/verifications',     ['AdminController', 'verifications']);

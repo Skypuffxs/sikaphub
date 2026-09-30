@@ -19,24 +19,42 @@ class Router
     // Dispatch the request to the correct controller/method
     public function dispatch($uri, $method)
     {
-        // Strip query strings from the URI (e.g., ?id=1)
+        // 1. Strip query strings from the URI (e.g., ?id=1)
         $uri = strtok($uri, '?');
+        $method = strtoupper($method);
 
-        if (array_key_exists($uri, $this->routes[$method])) {
-            $action = $this->routes[$method][$uri];
+        // 2. Normalize URI trailing slash
+        $normalizedUri = (strlen($uri) > 1) ? rtrim($uri, '/') : $uri;
 
-            // If the action is a closure/anonymous function (for testing)
-            if (is_callable($action)) {
-                return call_user_func($action);
-            }
+        // 3. Build candidate search list for maximum routing tolerance
+        $candidates = [
+            $uri,
+            $normalizedUri,
+        ];
 
-            // If the action is an array [Controller::class, 'method']
-            if (is_array($action)) {
-                $controllerName = $action[0];
-                $methodName = $action[1];
+        if (strpos($normalizedUri, '/admin/') === 0) {
+            $candidates[] = substr($normalizedUri, 6);
+        } elseif ($normalizedUri === '/admin') {
+            $candidates[] = '/';
+        }
 
-                $controller = new $controllerName();
-                return $controller->$methodName();
+        foreach ($candidates as $targetUri) {
+            if (isset($this->routes[$method][$targetUri])) {
+                $action = $this->routes[$method][$targetUri];
+
+                // If the action is a closure/anonymous function
+                if (is_callable($action)) {
+                    return call_user_func($action);
+                }
+
+                // If the action is an array [Controller::class, 'method']
+                if (is_array($action)) {
+                    $controllerName = $action[0];
+                    $methodName = $action[1];
+
+                    $controller = new $controllerName();
+                    return $controller->$methodName();
+                }
             }
         }
 
