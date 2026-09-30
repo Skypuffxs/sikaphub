@@ -11,7 +11,7 @@ $adminName = $admin_name ?? ($_SESSION['admin_name'] ?? 'PESO Admin');
         <div class="flex items-center justify-between h-16">
             <!-- Brand Logo -->
             <a href="/admin/dashboard" class="flex items-center gap-3 group">
-                <img src="https://sikaphub.com/public/assets/images/logo-icon.png" onerror="this.onerror=null; this.src='/public/assets/images/logo-icon.png';" alt="SikapHub" class="h-9 w-auto object-contain transition-transform group-hover:scale-105">
+                <img src="https://sikaphub.com/public/assets/images/logo-icon.png" onerror="this.onerror=null; this.src='/public/assets/images/logo-icon.png';" alt="SikapHub" class="h-9 w-auto object-contain transition-transform group-hover:scale-105" style="height: 36px; max-height: 36px; width: auto;">
                 <div class="flex flex-col">
                     <span class="font-extrabold text-lg tracking-tight text-white flex items-center gap-1.5">
                         Sikap<span class="bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">hub</span>
