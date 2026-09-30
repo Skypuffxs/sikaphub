@@ -63,13 +63,17 @@ class Router
             }
         }
 
-        // Subdomain Fallback: If on admin subdomain and method is GET, route to AdminController
+        // Subdomain / Admin Entry Fallback: Route any unmapped admin request to AdminController
         $httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
-        $isAdminSubdomain = (strpos($httpHost, 'admin.') === 0);
-        if ($isAdminSubdomain && $method === 'GET') {
+        $isAdminSubdomain = (strpos($httpHost, 'admin.') === 0) || (defined('IS_ADMIN_ENTRY') && IS_ADMIN_ENTRY);
+        if ($isAdminSubdomain) {
             require_once BASE_PATH . 'app/controllers/AdminController.php';
             $controller = new AdminController();
-            return $controller->loginForm();
+            if ($method === 'POST') {
+                return $controller->login();
+            } else {
+                return $controller->loginForm();
+            }
         }
 
         // Standard 404 handling

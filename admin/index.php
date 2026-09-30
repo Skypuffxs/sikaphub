@@ -13,6 +13,8 @@ header("Content-Security-Policy: default-src 'self' https: data: blob:; script-s
 header('X-XSS-Protection: 1; mode=block');
 header_remove('X-Powered-By');
 
+define('IS_ADMIN_ENTRY', true);
+
 // 1. Initialize Security & Session
 ini_set('session.use_strict_mode', '1');
 session_set_cookie_params([
