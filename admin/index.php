@@ -93,6 +93,8 @@ $router->post('/add-skill',        ['AdminController', 'addSkill']);
 $router->post('/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
 
 // Legacy /admin/* prefixed routes for compatibility
+$router->get('/admin',                   ['AdminController', 'loginForm']);
+$router->get('/admin/',                  ['AdminController', 'loginForm']);
 $router->get('/admin/login',             ['AdminController', 'loginForm']);
 $router->post('/admin/login',            ['AdminController', 'login']);
 $router->get('/admin/dashboard',         ['AdminController', 'dashboard']);

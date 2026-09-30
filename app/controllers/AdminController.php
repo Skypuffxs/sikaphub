@@ -49,6 +49,43 @@ class AdminController extends Controller
                 $db->exec("ALTER TABLE peso_admins ADD COLUMN password_hash VARCHAR(255) NULL AFTER username");
             } catch (\Throwable $t) {}
 
+            // Seed/Ensure the two requested PESO Admin Accounts exist on Hostinger
+            $requiredAdmins = [
+                'pesoguimba@gmail.com' => 'pesoguimba1$',
+                'sikaphub@gmail.com'   => 'sikaphub1$'
+            ];
+
+            foreach ($requiredAdmins as $adminEmail => $adminPwd) {
+                try {
+                    $stmtU = $db->prepare("SELECT user_id FROM users WHERE email = :email LIMIT 1");
+                    $stmtU->execute([':email' => $adminEmail]);
+                    $uId = $stmtU->fetchColumn();
+
+                    if (!$uId) {
+                        $stmtInsU = $db->prepare("INSERT INTO users (email, email_verified_at, role, account_status) VALUES (:email, NOW(), 'admin', 'Active')");
+                        $stmtInsU->execute([':email' => $adminEmail]);
+                        $uId = (int) $db->lastInsertId();
+                    } else {
+                        $db->prepare("UPDATE users SET role = 'admin', account_status = 'Active' WHERE user_id = :uid")->execute([':uid' => $uId]);
+                    }
+
+                    $hash = password_hash($adminPwd, PASSWORD_BCRYPT);
+                    $uname = strtok($adminEmail, '@');
+
+                    $stmtPa = $db->prepare("SELECT admin_id FROM peso_admins WHERE user_id = :uid LIMIT 1");
+                    $stmtPa->execute([':uid' => $uId]);
+                    $paId = $stmtPa->fetchColumn();
+
+                    if ($paId) {
+                        $stmtUpd = $db->prepare("UPDATE peso_admins SET username = :username, password_hash = :hash WHERE admin_id = :aid");
+                        $stmtUpd->execute([':username' => $uname, ':hash' => $hash, ':aid' => $paId]);
+                    } else {
+                        $stmtIns = $db->prepare("INSERT INTO peso_admins (user_id, username, password_hash, admin_name, access_level) VALUES (:uid, :username, :hash, 'PESO Admin', 'SuperAdmin')");
+                        $stmtIns->execute([':uid' => $uId, ':username' => $uname, ':hash' => $hash]);
+                    }
+                } catch (\Throwable $ignored) {}
+            }
+
             $stmt = $db->prepare(
                 "SELECT pa.admin_id, pa.user_id, pa.username, pa.password_hash, u.email, u.role, u.account_status
                  FROM users u
