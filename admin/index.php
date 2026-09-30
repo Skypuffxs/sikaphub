@@ -3,6 +3,16 @@
  * Dedicated Entry Point for Admin Subdomain (admin.sikaphub.com)
  */
 
+// Security Headers for A+ Grade (SecurityHeaders.com)
+header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(), usb=(), display-capture=()');
+header("Content-Security-Policy: default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https: data:; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-ancestors 'self';");
+header('X-XSS-Protection: 1; mode=block');
+header_remove('X-Powered-By');
+
 // 1. Initialize Security & Session
 ini_set('session.use_strict_mode', '1');
 session_set_cookie_params([
