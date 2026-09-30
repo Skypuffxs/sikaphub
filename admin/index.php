@@ -57,6 +57,7 @@ $router = new Router();
 // Calculate Request URI
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $requestUri = strtok($requestUri, '?');
+$requestUri = str_replace(['/admin/index.php', '/index.php'], '', $requestUri);
 
 // Strip /admin prefix if present for clean subdomain paths (admin.sikaphub.com/dashboard)
 if (strpos($requestUri, '/admin/') === 0) {
@@ -68,6 +69,7 @@ if (strpos($requestUri, '/admin/') === 0) {
 if (empty($requestUri) || $requestUri[0] !== '/') {
     $requestUri = '/' . $requestUri;
 }
+
 
 // Subdomain Clean Routes (admin.sikaphub.com/*)
 $router->get('/',                  ['AdminController', 'loginForm']);

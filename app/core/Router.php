@@ -19,12 +19,17 @@ class Router
     // Dispatch the request to the correct controller/method
     public function dispatch($uri, $method)
     {
-        // 1. Strip query strings from the URI (e.g., ?id=1)
+        // 1. Strip query strings and index.php artifacts from the URI
         $uri = strtok($uri, '?');
+        $uri = str_replace(['/admin/index.php', '/index.php'], '', $uri);
+        if (empty($uri) || $uri[0] !== '/') {
+            $uri = '/' . ltrim($uri, '/');
+        }
         $method = strtoupper($method);
 
         // 2. Normalize URI trailing slash
         $normalizedUri = (strlen($uri) > 1) ? rtrim($uri, '/') : $uri;
+
 
         // 3. Build candidate search list for maximum routing tolerance
         $candidates = [
