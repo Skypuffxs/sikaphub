@@ -455,11 +455,20 @@ class AdminController extends Controller
 
     private function redirect($path)
     {
+        $httpHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
+        $isAdminSubdomain = (strpos($httpHost, 'admin.') === 0);
+
+        // On admin subdomain (e.g. admin.sikaphub.com), clean up /admin/ prefix for root subdomain paths
+        if ($isAdminSubdomain && strpos($path, '/admin/') === 0) {
+            $path = substr($path, 6);
+        }
+
         $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $basePrefix = (strpos($scriptName, '/') === 0) ? '/sikaphub' : '';
+        $basePrefix = (strpos($scriptName, '/sikaphub/') === 0) ? '/sikaphub' : '';
         header('Location: ' . $basePrefix . $path);
         exit();
     }
+
 
     /**
      * Enqueue an in-app notification for the employer (UC-03 step 11, UC-00d).

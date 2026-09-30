@@ -144,24 +144,41 @@ $router->get('/employer/upload-permit',  ['EmployerController', 'uploadPermit'])
 $router->post('/employer/upload-permit', ['EmployerController', 'uploadPermit']);
 $router->post('/employer/compare-candidates', ['EmployerController', 'compareCandidates']);
 
-// Admin Routes & Dedicated Admin Authentication
+// Admin Routes & Dedicated Admin Authentication (Supports both main domain and subdomain execution)
 $router->get('/admin/login',             ['AdminController', 'loginForm']);
 $router->post('/admin/login',            ['AdminController', 'login']);
 $router->get('/admin/dashboard',         ['AdminController', 'dashboard']);
-$router->get('/admin/verifications', ['AdminController', 'verifications']);
-$router->get('/admin/export',       ['AdminController', 'exportPdf']);
-$router->get('/admin/employers',    ['AdminController', 'employers']);
-$router->get('/admin/seekers',      ['AdminController', 'seekers']);
-$router->get('/admin/jobs',         ['AdminController', 'jobs']);
-$router->get('/admin/skills',       ['AdminController', 'skills']);
-$router->get('/admin/audit-logs',   ['AdminController', 'auditLogs']);
-$router->get('/admin/logout',       ['AdminController', 'logout']);
-$router->post('/admin/verify-employer', ['AdminController', 'verifyEmployer']);
-$router->post('/admin/approve-skill',   ['AdminController', 'approveSkill']);
-$router->get('/admin/view-document',    ['AdminController', 'viewDocument']);
+$router->get('/admin/verifications',     ['AdminController', 'verifications']);
+$router->get('/admin/export',            ['AdminController', 'exportPdf']);
+$router->get('/admin/employers',         ['AdminController', 'employers']);
+$router->get('/admin/seekers',           ['AdminController', 'seekers']);
+$router->get('/admin/jobs',              ['AdminController', 'jobs']);
+$router->get('/admin/skills',            ['AdminController', 'skills']);
+$router->get('/admin/audit-logs',        ['AdminController', 'auditLogs']);
+$router->get('/admin/logout',            ['AdminController', 'logout']);
+$router->post('/admin/verify-employer',  ['AdminController', 'verifyEmployer']);
+$router->post('/admin/approve-skill',    ['AdminController', 'approveSkill']);
+$router->get('/admin/view-document',     ['AdminController', 'viewDocument']);
 $router->post('/admin/toggle-job-status', ['AdminController', 'toggleJobStatus']);
 $router->post('/admin/add-skill',        ['AdminController', 'addSkill']);
 $router->post('/admin/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
+
+// Subdomain Clean Routes (admin.sikaphub.com)
+$router->get('/verifications',     ['AdminController', 'verifications']);
+$router->get('/export',            ['AdminController', 'exportPdf']);
+$router->get('/employers',         ['AdminController', 'employers']);
+$router->get('/seekers',           ['AdminController', 'seekers']);
+$router->get('/jobs',              ['AdminController', 'jobs']);
+$router->get('/skills',            ['AdminController', 'skills']);
+$router->get('/audit-logs',        ['AdminController', 'auditLogs']);
+$router->get('/logout',            ['AdminController', 'logout']);
+$router->post('/verify-employer',  ['AdminController', 'verifyEmployer']);
+$router->post('/approve-skill',    ['AdminController', 'approveSkill']);
+$router->get('/view-document',     ['AdminController', 'viewDocument']);
+$router->post('/toggle-job-status', ['AdminController', 'toggleJobStatus']);
+$router->post('/add-skill',        ['AdminController', 'addSkill']);
+$router->post('/reanalyze-permit', ['AdminController', 'reanalyzePermit']);
+
 
 // 8. Dispatch the Request
 $method = $_SERVER['REQUEST_METHOD'];
